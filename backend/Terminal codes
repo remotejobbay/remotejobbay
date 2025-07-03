@@ -1,0 +1,6 @@
+cd C:\Users\user\Documents\echojobs-clone
+cd C:\Users\user\Documents\echojobs-clone
+npm run dev
+
+cd C:\Users\user\Documents\echojobs-clone\echojobs-backend
+uvicorn main:app --reload
