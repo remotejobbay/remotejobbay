@@ -102,20 +102,20 @@ export default function JobDetail() {
             transition={{ duration: 0.4 }}
             className="flex flex-col sm:flex-row items-start gap-4 mb-6"
           >
-            {job.logo && (
+            {job.logo && job.logo !== '/default-logo.png' && (
               <img
                 src={job.logo}
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/default-logo.png';
+                  e.currentTarget.style.display = 'none';
                 }}
                 alt={job.company}
                 className="w-20 h-20 object-contain rounded-full border bg-white p-2 shadow"
               />
             )}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">{job.title}</h1>
-              <p className="text-base sm:text-lg text-gray-600">{job.company}</p>
+              <h1 className="text-xl sm:text-3xl font-extrabold text-fuchsia-700 mb-1">{job.title}</h1>
+              <p className="text-base sm:text-lg font-semibold text-fuchsia-600">{job.company}</p>
               <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMapMarkerAlt /> Anywhere</span>
                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMoneyBillWave /> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</span>
@@ -155,7 +155,7 @@ export default function JobDetail() {
             </a>
           </div>
 
-          {/* Job Summary appears below Apply on mobile */}
+          {/* Job Summary on Mobile */}
           <section className="md:hidden bg-yellow-50 border border-yellow-200 p-6 rounded-xl shadow space-y-4 mb-10">
             <h2 className="text-xl font-bold text-yellow-800 flex items-center gap-2"><FaBriefcase /> Job Summary</h2>
             <ul className="text-sm text-yellow-900 space-y-2">
