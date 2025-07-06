@@ -3,10 +3,14 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FaStar, FaRegStar } from 'react-icons/fa';
+import {
+  FaStar, FaRegStar, FaBriefcase, FaBuilding,
+  FaMapMarkerAlt, FaMoneyBillWave, FaCalendarAlt, FaTags
+} from 'react-icons/fa';
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
 import { supabase } from '@/utils/supabase/supabaseClient';
+import { motion } from 'framer-motion';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -25,7 +29,7 @@ export default function JobDetail() {
           .single();
 
         if (error || !currentJob || !currentJob.applyUrl || currentJob.applyUrl.trim() === '') {
-          setJob(null); // ❌ Don't show job if applyUrl is invalid
+          setJob(null);
           return;
         }
 
@@ -90,9 +94,14 @@ export default function JobDetail() {
       </Link>
 
       <div className="grid md:grid-cols-3 gap-10">
-        {/* MAIN JOB CONTENT */}
+        {/* MAIN JOB INFO */}
         <div className="md:col-span-2">
-          <div className="flex items-start gap-4 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex items-start gap-4 mb-6"
+          >
             <img
               src={job.logo || '/default-logo.png'}
               onError={(e) => {
@@ -100,25 +109,30 @@ export default function JobDetail() {
                 e.currentTarget.src = '/default-logo.png';
               }}
               alt={job.company}
-              className="w-20 h-20 object-contain rounded border bg-white p-2"
+              className="w-20 h-20 object-contain rounded-full border bg-white p-2 shadow"
             />
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">{job.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-800 mb-1">{job.title}</h1>
               <p className="text-lg text-gray-600">{job.company}</p>
-              <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
-                <span>🌍 Anywhere</span>
-                <span>💰 {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</span>
-                <span>📅 {new Date(job.datePosted).toLocaleDateString()}</span>
-                <span className="capitalize">📌 {job.type}</span>
+              <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMapMarkerAlt /> Anywhere</span>
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMoneyBillWave /> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</span>
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaCalendarAlt /> {new Date(job.datePosted).toLocaleDateString()}</span>
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full capitalize"><FaTags /> {job.type}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <p className="text-gray-700 whitespace-pre-wrap mb-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-gray-50 p-4 rounded-lg shadow text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap mb-8"
+          >
             {job.description?.trim() ? job.description : 'No description provided.'}
-          </p>
+          </motion.div>
 
-          <div className="flex items-center gap-4 mb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-12">
             <button
               onClick={toggleBookmark}
               className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-md hover:bg-yellow-200 flex items-center gap-2"
@@ -131,7 +145,7 @@ export default function JobDetail() {
               href={job.applyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-6 py-2 rounded-md shadow text-white ${
+              className={`px-6 py-2 rounded-md shadow text-white transition-colors duration-200 ease-in-out ${
                 job.applyUrl ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
@@ -178,17 +192,17 @@ export default function JobDetail() {
           </section>
         </div>
 
-        {/* SIDEBAR */}
-        <aside className="bg-white border p-6 rounded-lg shadow space-y-4 sticky top-24 h-fit">
-          <h2 className="text-xl font-bold text-gray-800">Job Summary</h2>
-          <ul className="text-sm text-gray-600 space-y-2">
-            <li><strong>Position:</strong> {job.title}</li>
-            <li><strong>Company:</strong> {job.company}</li>
-            <li><strong>Location:</strong> Anywhere</li>
-            <li><strong>Type:</strong> {job.type}</li>
-            <li><strong>Salary:</strong> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</li>
-            <li><strong>Posted:</strong> {new Date(job.datePosted).toLocaleDateString()}</li>
-            <li><strong>Category:</strong> {job.category}</li>
+        {/* SIDEBAR SUMMARY */}
+        <aside className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl shadow space-y-4 sticky top-24 h-fit">
+          <h2 className="text-xl font-bold text-yellow-800 flex items-center gap-2"><FaBriefcase /> Job Summary</h2>
+          <ul className="text-sm text-yellow-900 space-y-2">
+            <li><FaBriefcase className="inline mr-2" /><strong>Position:</strong> {job.title}</li>
+            <li><FaBuilding className="inline mr-2" /><strong>Company:</strong> {job.company}</li>
+            <li><FaMapMarkerAlt className="inline mr-2" /><strong>Location:</strong> Anywhere</li>
+            <li><FaTags className="inline mr-2" /><strong>Type:</strong> {job.type}</li>
+            <li><FaMoneyBillWave className="inline mr-2" /><strong>Salary:</strong> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</li>
+            <li><FaCalendarAlt className="inline mr-2" /><strong>Posted:</strong> {new Date(job.datePosted).toLocaleDateString()}</li>
+            <li><FaTags className="inline mr-2" /><strong>Category:</strong> {job.category}</li>
           </ul>
         </aside>
       </div>

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/supabaseClient';
+import { motion } from 'framer-motion';
+import { FaEnvelope, FaLock } from 'react-icons/fa';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,38 +25,66 @@ export default function LoginPage() {
       setError(error.message);
     } else {
       alert('Login successful!');
-      router.push('/'); // or redirect to dashboard/bookmarks
+      router.push('/');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">Login</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-3 mb-4 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 mb-4 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-semibold"
-        >
-          Login
-        </button>
-      </form>
-    </div>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-50 to-white px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white shadow-xl rounded-xl p-6 sm:p-8 w-full max-w-md"
+      >
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">🔐 Login to RemoteJobBay</h2>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="relative">
+            <FaEnvelope className="absolute left-3 top-3.5 text-gray-400" />
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="relative">
+            <FaLock className="absolute left-3 top-3.5 text-gray-400" />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 p-2 rounded">
+              ⚠️ {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-semibold transition-all duration-200"
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-sm text-center text-gray-500 mt-6">
+          Don't have an account?{' '}
+          <a href="/register" className="text-blue-600 font-semibold hover:underline">
+            Create one
+          </a>
+        </p>
+      </motion.div>
+    </main>
   );
 }

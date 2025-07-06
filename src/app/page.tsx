@@ -3,7 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Listbox } from '@headlessui/react';
-import { FaChevronDown, FaRegStar, FaStar, FaGlobe, FaMapMarkerAlt, FaClock, FaDollarSign } from 'react-icons/fa';
+import {
+  FaChevronDown,
+  FaRegStar,
+  FaStar,
+  FaMapMarkerAlt,
+  FaClock,
+  FaDollarSign,
+} from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
@@ -15,7 +22,7 @@ const categories = [
   'Frontend', 'Backend', 'Design', 'DevOps', 'Product',
   'Finance', 'Accounting', 'Marketing', 'Sales', 'Customer Support',
   'Project Management', 'Writing', 'Data Science', 'AI & Machine Learning',
-  'Legal', 'Education', 'Human Resources'
+  'Legal', 'Education', 'Human Resources',
 ];
 
 export default function Home() {
@@ -38,9 +45,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching jobs:', error.message);
       } else {
-        const filtered = (data || []).filter(
-          (job) => job.applyUrl && job.applyUrl.trim() !== ''
-        );
+        const filtered = (data || []).filter((job) => job.applyUrl?.trim() !== '');
         setJobs(filtered);
       }
     };
@@ -94,9 +99,8 @@ export default function Home() {
         : true;
       return matchesSearch && matchesCategory;
     })
-    .sort(
-      (a, b) =>
-        new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime()
+    .sort((a, b) =>
+      new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime()
     );
 
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
@@ -112,28 +116,30 @@ export default function Home() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="max-w-6xl mx-auto p-6 min-h-[80vh]"
     >
-      {/* HERO */}
+      {/* Hero Section */}
       <motion.div
         className="text-center mb-6 bg-gradient-to-r from-blue-100 to-teal-100 py-6 px-4 rounded-xl shadow-sm border border-blue-200"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.5 }}
       >
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 flex items-center justify-center gap-2">
-          🌍💼 High-quality, fully remote jobs that you can do from any country 🌐✨
+        <h2 className="text-2xl sm:text-3xl font-bold text-blue-800">
+          🌍💼 High-quality, fully remote jobs that you can do from any country 🖥️✨
         </h2>
         <p className="text-sm sm:text-base text-gray-600 mt-2">
-          No borders. No limitations. Work from Accra, Manila, Nairobi — anywhere.
+          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon — anywhere.
         </p>
       </motion.div>
 
-      {/* EMAIL SUBSCRIPTION */}
-      <section className="mb-8 max-w-xl mx-auto w-full bg-yellow-50 border border-yellow-200 px-5 py-4 rounded-md shadow">
-        <EmailSubscription />
+      {/* Email Subscription */}
+      <section className="mb-8 max-w-xl mx-auto w-full">
+        <div className="bg-white rounded-xl p-4 shadow-md border border-yellow-200">
+          <EmailSubscription />
+        </div>
       </section>
 
-      {/* SEARCH & FILTER */}
-      <div className="mb-8 flex flex-col sm:flex-row gap-4">
+      {/* Search & Filter */}
+      <div className="mb-8 flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-md">
         <input
           type="text"
           placeholder="Search by title, company, or category..."
@@ -143,7 +149,7 @@ export default function Home() {
             setCurrentPage(1);
             setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
           }}
-          className="px-5 py-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white"
+          className="px-5 py-3 border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm placeholder-gray-400 text-gray-700"
         />
 
         <Listbox
@@ -155,7 +161,7 @@ export default function Home() {
           }}
         >
           <div className="relative w-full sm:w-[250px]">
-            <Listbox.Button className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-700 shadow-sm text-left flex justify-between items-center">
+            <Listbox.Button className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 shadow-sm text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-blue-400">
               {selectedCategory || 'All Categories'}
               <FaChevronDown className="ml-2 text-gray-500" />
             </Listbox.Button>
@@ -178,65 +184,73 @@ export default function Home() {
         </Listbox>
       </div>
 
-      {/* JOB LISTINGS */}
+      {/* Job Cards */}
       <div ref={jobListRef} className="space-y-4">
         {paginatedJobs.length > 0 ? (
           paginatedJobs.map((job) => (
             <motion.div
               key={job.id}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border border-gray-200 rounded-xl bg-white hover:shadow-lg transform hover:-translate-y-1 transition duration-300"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-yellow-400 transform transition-all duration-300"
               whileHover={{ scale: 1.01 }}
             >
-              <div className="flex-shrink-0 mr-4">
-                <img
-                  src={job.logo}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = '/default-logo.png';
-                  }}
-                  alt={`${job.company} logo`}
-                  className="w-16 h-16 object-contain rounded-md border"
-                />
-              </div>
-              <div className="flex-1">
-                <Link href={`/jobs/${job.id}`} className="block">
-                  <h3 className="text-lg font-bold text-indigo-700 hover:underline flex items-center gap-2">
-                    {job.title}
-                    <FaGlobe className="text-blue-500" title="Remote – Work from anywhere" />
-                  </h3>
-                  <p className="text-gray-700 font-medium">{job.company}</p>
-                </Link>
-                <div className="flex flex-wrap items-center gap-3 mt-2 text-sm font-medium">
-                  <span className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                    <FaMapMarkerAlt /> Anywhere
-                  </span>
-                  <span className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-                    <FaClock /> {job.type}
-                  </span>
-                  <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                    <FaDollarSign />
-                    {job.salary
-                      ? job.salaryType === 'hourly'
-                        ? `$${job.salary}/hr`
-                        : `$${job.salary}/yr`
-                      : 'Not specified'}
+              <div className="flex items-center gap-4 w-full">
+                {/* Conditional Logo Rendering */}
+                {job.logo && job.logo.trim() !== '' && (
+                  <img
+                    src={job.logo}
+                    alt={`${job.company} logo`}
+                    className="w-12 h-12 object-cover rounded-full border"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
+
+                <div className="flex-1 min-w-0">
+                  <Link href={`/jobs/${job.id}`} className="block">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 hover:underline">
+                      {job.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 truncate">{job.company}</p>
+                  </Link>
+                  <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                    <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
+                      <FaMapMarkerAlt className="text-xs" /> Anywhere
+                    </span>
+                    <span className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full flex items-center gap-1">
+                      <FaClock className="text-xs" /> {job.type}
+                    </span>
+                    <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1">
+                      <FaDollarSign className="text-xs" />
+                      {job.salary
+                        ? job.salaryType === 'hourly'
+                          ? `$${job.salary}/hr`
+                          : `$${job.salary}/yr`
+                        : 'Not specified'}
+                    </span>
+                    {job.category && (
+                      <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full">
+                        #{job.category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2">
+                  <button
+                    onClick={() => toggleBookmark(job.id)}
+                    className="text-yellow-500 hover:text-yellow-600"
+                  >
+                    {bookmarked.includes(String(job.id)) ? (
+                      <FaStar className="w-4 h-4" />
+                    ) : (
+                      <FaRegStar className="w-4 h-4" />
+                    )}
+                  </button>
+                  <span className="text-[10px] font-medium bg-blue-200 text-blue-900 px-2 py-1 rounded-full">
+                    {getPostedLabel(job.datePosted)}
                   </span>
                 </div>
-              </div>
-              <div className="flex flex-col items-end text-right space-y-2">
-                <button
-                  onClick={() => toggleBookmark(job.id)}
-                  className="text-yellow-500 hover:text-yellow-600 transition"
-                >
-                  {bookmarked.includes(String(job.id)) ? (
-                    <FaStar className="w-5 h-5" />
-                  ) : (
-                    <FaRegStar className="w-5 h-5" />
-                  )}
-                </button>
-                <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
-                  {getPostedLabel(job.datePosted)}
-                </span>
               </div>
             </motion.div>
           ))
@@ -245,7 +259,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* PAGINATION */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-8 space-x-4">
           <button
