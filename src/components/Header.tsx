@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { FaXTwitter, FaFacebookF, FaLinkedinIn } from 'react-icons/fa6';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { useRouter } from 'next/navigation';
+import MobileMenu from '@/components/MobileMenu'; // ✅ Import mobile menu
+import { HiMenu } from 'react-icons/hi';
 
 export default function Header() {
   const { user } = useUser();
@@ -20,8 +21,9 @@ export default function Header() {
 
   return (
     <header className="bg-[#0f172a] text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between">
-        <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center space-x-2">
           <span className="text-2xl">🌍</span>
           <Link
             href="/"
@@ -31,7 +33,8 @@ export default function Header() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        {/* Desktop Navigation */}
+        <div className="hidden sm:flex items-center gap-4">
           {user ? (
             <>
               <span className="text-sm text-white">Welcome, {user.email}</span>
@@ -46,14 +49,14 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <div className="flex gap-4">
+            <>
               <Link href="/login" className="text-sm hover:text-blue-400 font-medium">
                 Login
               </Link>
               <Link href="/signup" className="text-sm hover:text-blue-400 font-medium">
                 Create Account
               </Link>
-            </div>
+            </>
           )}
 
           <button
@@ -62,6 +65,11 @@ export default function Header() {
           >
             Post a Job – Free
           </button>
+        </div>
+
+        {/* Mobile Hamburger Button */}
+        <div className="sm:hidden">
+          <MobileMenu />
         </div>
       </div>
     </header>

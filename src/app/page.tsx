@@ -28,6 +28,7 @@ const categories = [
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [inputTerm, setInputTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const { user } = useUser();
@@ -89,6 +90,12 @@ export default function Home() {
     return `📅 ${diffDays} days ago`;
   };
 
+  const handleSearch = () => {
+    setSearchTerm(inputTerm);
+    setCurrentPage(1);
+    setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  };
+
   const filteredJobs = jobs
     .filter((job) => {
       const matchesSearch = (job.title + job.company + job.location)
@@ -116,7 +123,7 @@ export default function Home() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="max-w-6xl mx-auto p-6 min-h-[80vh]"
     >
-      {/* Hero Section */}
+      {/* Hero */}
       <motion.div
         className="text-center mb-6 bg-gradient-to-r from-blue-100 to-teal-100 py-6 px-4 rounded-xl shadow-sm border border-blue-200"
         initial={{ opacity: 0 }}
@@ -143,14 +150,16 @@ export default function Home() {
         <input
           type="text"
           placeholder="Search by title, company, or category..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-            setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-          }}
+          value={inputTerm}
+          onChange={(e) => setInputTerm(e.target.value)}
           className="px-5 py-3 border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm placeholder-gray-400 text-gray-700"
         />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg shadow w-full sm:w-auto"
+        >
+          Search
+        </button>
 
         <Listbox
           value={selectedCategory}
@@ -184,7 +193,7 @@ export default function Home() {
         </Listbox>
       </div>
 
-      {/* Job Cards */}
+      {/* Job List */}
       <div ref={jobListRef} className="space-y-4">
         {paginatedJobs.length > 0 ? (
           paginatedJobs.map((job) => (
@@ -194,7 +203,6 @@ export default function Home() {
               whileHover={{ scale: 1.01 }}
             >
               <div className="flex items-center gap-4 w-full">
-                {/* Conditional Logo Rendering */}
                 {job.logo && job.logo.trim() !== '' && (
                   <img
                     src={job.logo}
@@ -208,10 +216,10 @@ export default function Home() {
 
                 <div className="flex-1 min-w-0">
                   <Link href={`/jobs/${job.id}`} className="block">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800 hover:underline">
+                    <h3 className="text-base sm:text-lg font-bold text-fuchsia-700 hover:underline">
                       {job.title}
                     </h3>
-                    <p className="text-sm text-gray-600 truncate">{job.company}</p>
+                    <p className="text-sm text-fuchsia-500 truncate">{job.company}</p>
                   </Link>
                   <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
                     <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
