@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import {
-  FaRegStar, FaStar, FaMapMarkerAlt, FaClock,
-  FaDollarSign,
+  FaRegStar, FaStar, FaMapMarkerAlt, FaClock, FaDollarSign,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
@@ -23,7 +22,7 @@ export default function JobCard({
   showBookmark = true,
 }: Props) {
   const isBookmarked = bookmarked.includes(String(job.id));
-  const [logoError, setLogoError] = useState(false);
+  const [logoVisible, setLogoVisible] = useState(true);
 
   const getPostedLabel = (datePosted: string) => {
     const jobDate = new Date(datePosted);
@@ -35,20 +34,18 @@ export default function JobCard({
     return `📅 ${diffDays} days ago`;
   };
 
-  const isValidLogo = job.logo && job.logo.trim() !== '' && !logoError;
-
   return (
     <motion.div
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-yellow-400 transform transition-all duration-300"
       whileHover={{ scale: 1.01 }}
     >
       <div className="flex items-center gap-4 w-full">
-        {isValidLogo && (
+        {job.logo && job.logo.trim() !== '' && logoVisible && (
           <img
             src={job.logo}
             alt={`${job.company} logo`}
             className="w-12 h-12 object-cover rounded-full border"
-            onError={() => setLogoError(true)}
+            onError={() => setLogoVisible(false)}
           />
         )}
 
