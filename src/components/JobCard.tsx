@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   job: Job;
@@ -15,8 +16,14 @@ interface Props {
   showBookmark?: boolean;
 }
 
-export default function JobCard({ job, bookmarked = [], toggleBookmark, showBookmark = true }: Props) {
+export default function JobCard({
+  job,
+  bookmarked = [],
+  toggleBookmark,
+  showBookmark = true,
+}: Props) {
   const isBookmarked = bookmarked.includes(String(job.id));
+  const [logoError, setLogoError] = useState(false);
 
   const getPostedLabel = (datePosted: string) => {
     const jobDate = new Date(datePosted);
@@ -28,20 +35,20 @@ export default function JobCard({ job, bookmarked = [], toggleBookmark, showBook
     return `📅 ${diffDays} days ago`;
   };
 
+  const isValidLogo = job.logo && job.logo.trim() !== '' && !logoError;
+
   return (
     <motion.div
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-yellow-400 transform transition-all duration-300"
       whileHover={{ scale: 1.01 }}
     >
       <div className="flex items-center gap-4 w-full">
-        {job.logo && job.logo.trim() !== '' && (
+        {isValidLogo && (
           <img
             src={job.logo}
             alt={`${job.company} logo`}
             className="w-12 h-12 object-cover rounded-full border"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
+            onError={() => setLogoError(true)}
           />
         )}
 
@@ -53,15 +60,17 @@ export default function JobCard({ job, bookmarked = [], toggleBookmark, showBook
             <p className="text-sm text-fuchsia-500 truncate">{job.company}</p>
           </Link>
           <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
-            <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
-              <FaMapMarkerAlt className="text-xs" /> Anywhere
-            </span>
+            {job.location && (
+              <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
+                <FaMapMarkerAlt className="text-xs" /> {job.location}
+              </span>
+            )}
             <span className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full flex items-center gap-1">
               <FaClock className="text-xs" /> {job.type}
             </span>
             <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1">
               <FaDollarSign className="text-xs" />
-              {job.salary
+              {job.salary && Number(job.salary) > 0
                 ? job.salaryType === 'hourly'
                   ? `$${job.salary}/hr`
                   : `$${job.salary}/yr`
@@ -81,7 +90,11 @@ export default function JobCard({ job, bookmarked = [], toggleBookmark, showBook
               onClick={() => toggleBookmark(job.id)}
               className="text-yellow-500 hover:text-yellow-600"
             >
-              {isBookmarked ? <FaStar className="w-4 h-4" /> : <FaRegStar className="w-4 h-4" />}
+              {isBookmarked ? (
+                <FaStar className="w-4 h-4" />
+              ) : (
+                <FaRegStar className="w-4 h-4" />
+              )}
             </button>
             <span className="text-[10px] font-medium bg-blue-200 text-blue-900 px-2 py-1 rounded-full">
               {getPostedLabel(job.datePosted)}

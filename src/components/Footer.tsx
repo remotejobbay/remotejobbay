@@ -77,7 +77,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-gray-700 mt-8 py-4 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Global Remote Jobs. All rights reserved.
+        © {new Date().getFullYear()} Remotejobbay. All rights reserved.
       </div>
     </footer>
   );

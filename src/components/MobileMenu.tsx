@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Dialog } from '@headlessui/react';
-import { HiMenu, HiX } from 'react-icons/hi';
+import { useState, useRef, useEffect } from 'react';
+import { FaBars, FaTimes } from 'react-icons/fa';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 
@@ -12,14 +10,11 @@ export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handlePostJobClick = () => {
     setIsOpen(false);
-    if (user) {
-      router.push('/post');
-    } else {
-      router.push('/login');
-    }
+    router.push(user ? '/post' : '/login');
   };
 
   const handleLogout = async () => {
@@ -27,39 +22,46 @@ export default function MobileMenu() {
     location.reload();
   };
 
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <>
+    <div className="relative sm:hidden">
       <button
-        className="text-white sm:hidden"
-        onClick={() => setIsOpen(true)}
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-white p-2 rounded-md bg-blue-600 hover:bg-blue-700"
+        aria-label="Toggle menu"
       >
-        <HiMenu className="w-7 h-7" />
+        {isOpen ? <FaTimes className="w-5 h-5" /> : <FaBars className="w-5 h-5" />}
       </button>
 
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50 sm:hidden">
-        <div className="fixed inset-0 bg-black bg-opacity-40" />
-        <motion.div
-          initial={{ x: '-100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '-100%' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed top-0 left-0 w-4/5 max-w-xs h-full bg-white p-6 flex flex-col shadow-xl"
+      {isOpen && (
+        <div
+          ref={menuRef}
+          className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50 animate-fade-in"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-blue-800">Menu</h2>
-            <button onClick={() => setIsOpen(false)} className="text-gray-600">
-              <HiX className="w-6 h-6" />
-            </button>
-          </div>
-
-          <nav className="flex flex-col gap-4 text-lg text-gray-700">
+          <nav className="flex flex-col px-4 py-3 text-sm text-gray-700 space-y-2">
             <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
             <Link href="/jobs" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
             <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
+
             {user ? (
               <>
-                <span className="text-sm text-gray-500">Welcome, {user.email}</span>
-                <button onClick={handleLogout} className="text-left text-red-600">Logout</button>
+                <span className="text-xs text-gray-500">Welcome, {user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-left text-red-500 hover:underline"
+                >
+                  Logout
+                </button>
               </>
             ) : (
               <>
@@ -67,19 +69,20 @@ export default function MobileMenu() {
                 <Link href="/signup" onClick={() => setIsOpen(false)}>Create Account</Link>
               </>
             )}
+
             <button
               onClick={handlePostJobClick}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md"
+              className="mt-3 bg-blue-600 text-white text-center py-2 rounded-md hover:bg-blue-700"
             >
               Post a Job – Free
             </button>
           </nav>
 
-          <div className="mt-auto pt-6 text-sm text-gray-400 border-t">
+          <div className="text-center text-xs text-gray-400 py-3 border-t">
             © {new Date().getFullYear()} RemoteJobBay
           </div>
-        </motion.div>
-      </Dialog>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
