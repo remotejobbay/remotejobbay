@@ -18,6 +18,7 @@ export default function JobDetail() {
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [similarJobs, setSimilarJobs] = useState<Job[]>([]);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     async function fetchJobAndSimilar() {
@@ -75,6 +76,12 @@ export default function JobDetail() {
     localStorage.setItem('bookmarkedJobs', JSON.stringify(updated));
   };
 
+  const formatSalary = () => {
+    if (!job) return '';
+    if (!job.salary || Number(job.salary) === 0) return 'Not specified';
+    return job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`;
+  };
+
   if (loading) {
     return <div className="p-6 text-center text-gray-500">Loading job...</div>;
   }
@@ -86,6 +93,8 @@ export default function JobDetail() {
       </div>
     );
   }
+
+  const shouldShowLogo = job.logo && job.logo.trim() !== '' && !logoError;
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-10">
@@ -102,23 +111,20 @@ export default function JobDetail() {
             transition={{ duration: 0.4 }}
             className="flex flex-col sm:flex-row items-start gap-4 mb-6"
           >
-            {job.logo && job.logo !== '/default-logo.png' && (
+            {shouldShowLogo && (
               <img
                 src={job.logo}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.style.display = 'none';
-                }}
                 alt={job.company}
                 className="w-20 h-20 object-contain rounded-full border bg-white p-2 shadow"
+                onError={() => setLogoError(true)}
               />
             )}
             <div>
               <h1 className="text-xl sm:text-3xl font-extrabold text-fuchsia-700 mb-1">{job.title}</h1>
               <p className="text-base sm:text-lg font-semibold text-fuchsia-600">{job.company}</p>
               <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
-                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMapMarkerAlt /> Anywhere</span>
-                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMoneyBillWave /> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</span>
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMapMarkerAlt /> {job.location}</span>
+                <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaMoneyBillWave /> {formatSalary()}</span>
                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full"><FaCalendarAlt /> {new Date(job.datePosted).toLocaleDateString()}</span>
                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full capitalize"><FaTags /> {job.type}</span>
               </div>
@@ -161,9 +167,9 @@ export default function JobDetail() {
             <ul className="text-sm text-yellow-900 space-y-2">
               <li><FaBriefcase className="inline mr-2" /><strong>Position:</strong> {job.title}</li>
               <li><FaBuilding className="inline mr-2" /><strong>Company:</strong> {job.company}</li>
-              <li><FaMapMarkerAlt className="inline mr-2" /><strong>Location:</strong> Anywhere</li>
+              <li><FaMapMarkerAlt className="inline mr-2" /><strong>Location:</strong> {job.location}</li>
               <li><FaTags className="inline mr-2" /><strong>Type:</strong> {job.type}</li>
-              <li><FaMoneyBillWave className="inline mr-2" /><strong>Salary:</strong> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</li>
+              <li><FaMoneyBillWave className="inline mr-2" /><strong>Salary:</strong> {formatSalary()}</li>
               <li><FaCalendarAlt className="inline mr-2" /><strong>Posted:</strong> {new Date(job.datePosted).toLocaleDateString()}</li>
               <li><FaTags className="inline mr-2" /><strong>Category:</strong> {job.category}</li>
             </ul>
@@ -211,9 +217,9 @@ export default function JobDetail() {
           <ul className="text-sm text-yellow-900 space-y-2">
             <li><FaBriefcase className="inline mr-2" /><strong>Position:</strong> {job.title}</li>
             <li><FaBuilding className="inline mr-2" /><strong>Company:</strong> {job.company}</li>
-            <li><FaMapMarkerAlt className="inline mr-2" /><strong>Location:</strong> Anywhere</li>
+            <li><FaMapMarkerAlt className="inline mr-2" /><strong>Location:</strong> {job.location}</li>
             <li><FaTags className="inline mr-2" /><strong>Type:</strong> {job.type}</li>
-            <li><FaMoneyBillWave className="inline mr-2" /><strong>Salary:</strong> {job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`}</li>
+            <li><FaMoneyBillWave className="inline mr-2" /><strong>Salary:</strong> {formatSalary()}</li>
             <li><FaCalendarAlt className="inline mr-2" /><strong>Posted:</strong> {new Date(job.datePosted).toLocaleDateString()}</li>
             <li><FaTags className="inline mr-2" /><strong>Category:</strong> {job.category}</li>
           </ul>
