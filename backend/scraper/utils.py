@@ -7,16 +7,16 @@ HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
-    "Prefer": "return=representation"
+    "Prefer": "resolution=merge-duplicates,return=representation"
 }
 
 def insert_job(job):
     # Default values
-    job['type'] = job.get('type') or 'Full-time'
-    job['category'] = job.get('category') or 'Engineering'
+    job['type'] = job.get('type') or 'Full-Time'
+    job['category'] = job.get('category') or 'General'
     job['salaryType'] = job.get('salaryType') or 'Negotiable'
     job['logo'] = job.get('logo') or 'https://example.com/default-logo.png'
-    job['location'] = job.get('location') or 'Remote'
+    job['location'] = job.get('location') or 'Worldwide'
     job['description'] = job.get('description') or 'No description provided'
 
     # Ensure salary is numeric
@@ -25,7 +25,12 @@ def insert_job(job):
     except (TypeError, ValueError):
         job['salary'] = 0
 
-    response = requests.post(f"{SUPABASE_URL}/rest/v1/jobs", headers=HEADERS, json=job)
+    # Wrap job in a list for batch upsert
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/jobs?on_conflict=applyUrl",
+        headers=HEADERS,
+        json=[job]
+    )
 
     if response.status_code >= 400:
         print(f"❌ Failed to upload: {job.get('title', 'No title')} - {response.status_code}")
