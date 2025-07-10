@@ -4,7 +4,7 @@ import './globals.css';
 import { UserProvider } from '@/context/UserContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import Script from 'next/script'; // ✅ Import Script for Google Analytics
+import Script from 'next/script';
 
 export const metadata = {
   title: 'remotejobbay',
@@ -17,8 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* ✅ Google Analytics Scripts */}
         <Script
-          strategy="afterInteractive"
+          async
           src="https://www.googletagmanager.com/gtag/js?id=G-9W914ZELWS"
+          strategy="afterInteractive"
         />
         <Script
           id="google-analytics"
