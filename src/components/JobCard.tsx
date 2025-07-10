@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import {
-  FaRegStar, FaStar, FaMapMarkerAlt, FaClock,
-  FaDollarSign,
+  FaRegStar, FaStar, FaMapMarkerAlt, FaClock, FaDollarSign,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
@@ -37,6 +36,16 @@ export default function JobCard({
 
   const isValidLogo = job.logo && job.logo.trim() !== '' && !logoError;
 
+  const handleJobClick = () => {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'job_click', {
+        event_category: 'jobs',
+        event_label: `${job.title} at ${job.company}`,
+        job_id: job.id,
+      });
+    }
+  };
+
   return (
     <motion.div
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-yellow-400 transform transition-all duration-300"
@@ -53,7 +62,7 @@ export default function JobCard({
         )}
 
         <div className="flex-1 min-w-0">
-          <Link href={`/jobs/${job.id}`} className="block">
+          <Link href={`/jobs/${job.id}`} className="block" onClick={handleJobClick}>
             <h3 className="text-base sm:text-lg font-bold text-fuchsia-700 hover:underline">
               {job.title}
             </h3>

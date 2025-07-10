@@ -4,14 +4,29 @@ import Link from 'next/link';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { useRouter } from 'next/navigation';
-import MobileMenu from '@/components/MobileMenu'; // ✅ Import mobile menu
+import MobileMenu from '@/components/MobileMenu';
 import { HiMenu } from 'react-icons/hi';
+
+// ✅ Declare gtag type so TypeScript won't complain
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 export default function Header() {
   const { user } = useUser();
   const router = useRouter();
 
   const handlePostJobClick = () => {
+    // ✅ Google Analytics event tracking
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'post_job_click', {
+        event_category: 'engagement',
+        event_label: 'Post a Job – Free',
+      });
+    }
+
     if (user) {
       router.push('/post');
     } else {

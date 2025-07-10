@@ -20,6 +20,15 @@ export default function EmailSubscription() {
       if (res.ok) {
         setSubmitted(true);
         setEmail('');
+
+        // ✅ Google Analytics event
+        if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+          window.gtag('event', 'email_subscribed', {
+            event_category: 'engagement',
+            event_label: 'Homepage Subscription',
+          });
+        }
+
       } else {
         alert('Something went wrong. Please try again.');
       }

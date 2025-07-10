@@ -36,6 +36,15 @@ export default function JobDetail() {
 
         setJob(currentJob);
 
+        // ✅ GA Event: Track job view
+        if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+          window.gtag('event', 'job_view', {
+            event_category: 'jobs',
+            event_label: `${currentJob.title} at ${currentJob.company}`,
+            job_id: currentJob.id,
+          });
+        }
+
         const { data: allJobs } = await supabase
           .from('jobs')
           .select('*')
@@ -80,6 +89,19 @@ export default function JobDetail() {
     if (!job) return '';
     if (!job.salary || Number(job.salary) === 0) return 'Not specified';
     return job.salaryType === 'hourly' ? `$${job.salary}/hr` : `$${job.salary}/yr`;
+  };
+
+  const handleApplyClick = () => {
+    if (!job) return;
+
+    // ✅ GA Event: Track Apply Click
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'job_apply', {
+        event_category: 'jobs',
+        event_label: `${job.title} at ${job.company}`,
+        job_id: job.id,
+      });
+    }
   };
 
   if (loading) {
@@ -153,6 +175,7 @@ export default function JobDetail() {
               href={job.applyUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleApplyClick} // ✅ Track Apply
               className={`px-6 py-2 rounded-md shadow text-white transition-colors duration-200 ease-in-out ${
                 job.applyUrl ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
               }`}
