@@ -102,7 +102,7 @@ export default function Home() {
           🌍💼 High-quality, fully remote jobs that you can do from any country 🖥️✨
         </h2>
         <p className="text-sm sm:text-base text-gray-600 mt-2">
-          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon — anywhere.
+          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon - anywhere.
         </p>
       </motion.div>
 
