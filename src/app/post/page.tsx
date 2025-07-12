@@ -64,14 +64,18 @@ export default function PostJobForm() {
       .single();
 
     setLoading(false);
-    if (error) return alert('Error saving draft job.');
+
+    // 🔥 NEW: log full error details
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return alert('Error saving draft job. Check console for details.');
+    }
 
     setDraftId(data.id); // move to Step 2 (payment)
   };
 
   /* Paystack callback -------------------------------------- */
   const handlePaySuccess = (reference: string) => {
-    // Show quick feedback; webhook will publish row soon
     alert('✅ Payment successful! Your job will appear once Paystack confirms.');
     router.push('/');
   };
@@ -117,29 +121,14 @@ export default function PostJobForm() {
 
         {/* Text inputs */}
         {[
-          {
-            icon: <FaBriefcase />,
-            name: 'title',
-            placeholder: 'Job Title',
-            type: 'text',
-          },
-          {
-            icon: <FaBuilding />,
-            name: 'company',
-            placeholder: 'Company Name',
-            type: 'text',
-          },
-          {
-            icon: <FaMapMarkerAlt />,
-            name: 'location',
-            placeholder: 'Location (e.g. Worldwide)',
-            type: 'text',
-          },
-        ].map(({ icon, name, placeholder, type }) => (
+          { icon: <FaBriefcase />, name: 'title',    placeholder: 'Job Title' },
+          { icon: <FaBuilding />,  name: 'company',  placeholder: 'Company Name' },
+          { icon: <FaMapMarkerAlt />, name: 'location', placeholder: 'Location (e.g. Worldwide)' },
+        ].map(({ icon, name, placeholder }) => (
           <div className="flex items-center gap-3" key={name}>
             <span className="text-blue-600">{icon}</span>
             <input
-              type={type}
+              type="text"
               name={name}
               placeholder={placeholder}
               required
