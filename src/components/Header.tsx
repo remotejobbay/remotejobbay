@@ -19,11 +19,11 @@ export default function Header() {
   const router = useRouter();
 
   const handlePostJobClick = () => {
-    // ✅ Google Analytics event tracking
+    // ✅ Google Analytics event tracking (updated label)
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       window.gtag('event', 'post_job_click', {
         event_category: 'engagement',
-        event_label: 'Post a Job – Free',
+        event_label: 'Post a Job – $100',
       });
     }
 
@@ -78,7 +78,7 @@ export default function Header() {
             onClick={handlePostJobClick}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-md shadow transition duration-200"
           >
-            Post a Job – Free
+            Post a Job – $100
           </button>
         </div>
 

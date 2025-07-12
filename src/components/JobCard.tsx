@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 import {
-  FaRegStar, FaStar, FaMapMarkerAlt, FaClock, FaDollarSign,
+  FaRegStar,
+  FaStar,
+  FaMapMarkerAlt,
+  FaClock,
+  FaDollarSign,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
@@ -24,19 +28,20 @@ export default function JobCard({
   const isBookmarked = bookmarked.includes(String(job.id));
   const [logoError, setLogoError] = useState(false);
 
-  const getPostedLabel = (datePosted: string) => {
-    const jobDate = new Date(datePosted);
-    const today = new Date();
-    const diffTime = today.getTime() - jobDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return '📅 Today';
-    if (diffDays === 1) return '📅 1 day ago';
-    return `📅 ${diffDays} days ago`;
+  /* ─────────── Helpers ─────────── */
+  const postedLabel = (d: string) => {
+    const diff = Math.floor(
+      (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (diff === 0) return '📅 Today';
+    if (diff === 1) return '📅 1 day ago';
+    return `📅 ${diff} days ago`;
   };
 
-  const isValidLogo = job.logo && job.logo.trim() !== '' && !logoError;
+  const logoOk = job.logo && !logoError && job.logo.trim() !== '';
 
-  const handleJobClick = () => {
+  /* Google Analytics click event */
+  const trackClick = () => {
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       window.gtag('event', 'job_click', {
         event_category: 'jobs',
@@ -46,71 +51,101 @@ export default function JobCard({
     }
   };
 
+  /* ─────────── Render ─────────── */
   return (
-    <motion.div
-      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-yellow-400 transform transition-all duration-300"
-      whileHover={{ scale: 1.01 }}
+    <motion.article
+      whileHover={{ scale: 1.015 }}
+      className="rounded-3xl bg-yellow-100/70 border border-yellow-300/70 p-4 sm:p-5
+                 grid sm:grid-cols-[48px_1fr_auto] gap-4 hover:shadow-xl
+                 transition-all duration-300"
     >
-      <div className="flex items-center gap-4 w-full">
-        {isValidLogo && (
-          <img
-            src={job.logo}
-            alt={`${job.company} logo`}
-            className="w-12 h-12 object-cover rounded-full border"
-            onError={() => setLogoError(true)}
-          />
-        )}
-
-        <div className="flex-1 min-w-0">
-          <Link href={`/jobs/${job.id}`} className="block" onClick={handleJobClick}>
-            <h3 className="text-base sm:text-lg font-bold text-fuchsia-700 hover:underline">
-              {job.title}
-            </h3>
-            <p className="text-sm text-fuchsia-500 truncate">{job.company}</p>
-          </Link>
-          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
-            {job.location && (
-              <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
-                <FaMapMarkerAlt className="text-xs" /> {job.location}
-              </span>
-            )}
-            <span className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full flex items-center gap-1">
-              <FaClock className="text-xs" /> {job.type}
-            </span>
-            <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1">
-              <FaDollarSign className="text-xs" />
-              {job.salary && Number(job.salary) > 0
-                ? job.salaryType === 'hourly'
-                  ? `$${job.salary}/hr`
-                  : `$${job.salary}/yr`
-                : 'Not specified'}
-            </span>
-            {job.category && (
-              <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full">
-                #{job.category}
-              </span>
-            )}
-          </div>
+      {/* Logo */}
+      {logoOk ? (
+        <img
+          src={job.logo}
+          alt={`${job.company} logo`}
+          onError={() => setLogoError(true)}
+          className="row-span-2 h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-full border bg-white"
+        />
+      ) : (
+        <div className="row-span-2 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-semibold">
+          ?
         </div>
+      )}
 
-        {showBookmark && toggleBookmark && (
-          <div className="flex flex-col items-end gap-2">
-            <button
-              onClick={() => toggleBookmark(job.id)}
-              className="text-yellow-500 hover:text-yellow-600"
-            >
-              {isBookmarked ? (
-                <FaStar className="w-4 h-4" />
-              ) : (
-                <FaRegStar className="w-4 h-4" />
-              )}
-            </button>
-            <span className="text-[10px] font-medium bg-blue-200 text-blue-900 px-2 py-1 rounded-full">
-              {getPostedLabel(job.datePosted)}
+      {/* Job title & company */}
+      <div>
+        <Link
+          href={`/jobs/${job.id}`}
+          onClick={trackClick}
+          className="block focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
+        >
+          <h3 className="font-extrabold text-fuchsia-700 leading-snug">
+            {job.title}
+          </h3>
+          <p className="text-fuchsia-500 text-sm mt-0.5">{job.company}</p>
+        </Link>
+
+        {/* Badges */}
+        <div className="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
+          {job.location && (
+            <span className="badge-green">
+              <FaMapMarkerAlt className="icon-xs" />
+              {job.location}
             </span>
-          </div>
-        )}
+          )}
+          <span className="badge-yellow">
+            <FaClock className="icon-xs" />
+            {job.type}
+          </span>
+          <span className="badge-blue">
+            <FaDollarSign className="icon-xs" />
+            {job.salary && Number(job.salary) > 0
+              ? job.salaryType === 'hourly'
+                ? `$${job.salary}/hr`
+                : `$${job.salary}/yr`
+              : 'Not specified'}
+          </span>
+          {job.category && (
+            <span className="badge-purple">#{job.category}</span>
+          )}
+        </div>
       </div>
-    </motion.div>
+
+      {/* Bookmark & date (desktop) */}
+      {showBookmark && toggleBookmark && (
+        <div className="hidden sm:flex flex-col items-end justify-between">
+          <button
+            onClick={() => toggleBookmark(job.id)}
+            className="text-yellow-500 hover:text-yellow-600"
+            aria-label="bookmark"
+          >
+            {isBookmarked ? <FaStar /> : <FaRegStar />}
+          </button>
+          <span className="mt-3 bg-blue-200 text-blue-900 text-[11px] px-2 py-0.5 rounded-full">
+            {postedLabel(job.datePosted)}
+          </span>
+        </div>
+      )}
+
+      {/* Bookmark & date (mobile) */}
+      {showBookmark && toggleBookmark && (
+        <div className="sm:hidden mt-3 flex justify-between items-center">
+          <span className="bg-blue-200 text-blue-900 text-[11px] px-2 py-0.5 rounded-full">
+            {postedLabel(job.datePosted)}
+          </span>
+          <button
+            onClick={() => toggleBookmark(job.id)}
+            className="ml-auto text-yellow-500 hover:text-yellow-600"
+            aria-label="bookmark"
+          >
+            {isBookmarked ? <FaStar /> : <FaRegStar />}
+          </button>
+        </div>
+      )}
+    </motion.article>
   );
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Tailwind badge helpers: add once in globals.css (optional)   */

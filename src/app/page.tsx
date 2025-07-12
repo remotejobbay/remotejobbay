@@ -29,6 +29,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const jobListRef = useRef<HTMLDivElement>(null);
 
+  /* ─────────── Fetch jobs ─────────── */
   useEffect(() => {
     const fetchJobs = async () => {
       const { data, error } = await supabase
@@ -36,41 +37,27 @@ export default function Home() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching jobs:', error.message);
-      } else {
-        const filtered = (data || []).filter((job) => job.applyUrl?.trim() !== '');
-        setJobs(filtered);
-      }
+      if (error) console.error('Error fetching jobs:', error.message);
+      else setJobs((data || []).filter(j => j.applyUrl?.trim() !== ''));
     };
-
     fetchJobs();
   }, []);
 
+  /* ─────────── Load bookmarks ─────────── */
   useEffect(() => {
     const saved = localStorage.getItem('bookmarkedJobs');
-    if (saved) {
-      setBookmarked(JSON.parse(saved));
-    }
+    if (saved) setBookmarked(JSON.parse(saved));
   }, []);
 
-  const toggleBookmark = (jobId: string | number) => {
-    if (!user) {
-      alert('Please log in to save jobs.');
-      return;
-    }
-
-    const idStr = String(jobId);
-    let updated = [...bookmarked];
-
-    if (bookmarked.includes(idStr)) {
-      updated = updated.filter((id) => id !== idStr);
-    } else {
-      updated.push(idStr);
-    }
-
-    setBookmarked(updated);
-    localStorage.setItem('bookmarkedJobs', JSON.stringify(updated));
+  /* ─────────── Helpers ─────────── */
+  const toggleBookmark = (id: string | number) => {
+    if (!user) return alert('Please log in to save jobs.');
+    const idStr = String(id);
+    const next = bookmarked.includes(idStr)
+      ? bookmarked.filter(b => b !== idStr)
+      : [...bookmarked, idStr];
+    setBookmarked(next);
+    localStorage.setItem('bookmarkedJobs', JSON.stringify(next));
   };
 
   const handleSearch = () => {
@@ -79,26 +66,24 @@ export default function Home() {
     setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
+  /* ─────────── Filter + paginate ─────────── */
   const filteredJobs = jobs
-    .filter((job) => {
-      const matchesSearch = (job.title + job.company + job.location)
+    .filter(j => {
+      const matchSearch = (j.title + j.company + j.location)
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory
-        ? job.category === selectedCategory
-        : true;
-      return matchesSearch && matchesCategory;
+      const matchCat = selectedCategory ? j.category === selectedCategory : true;
+      return matchSearch && matchCat;
     })
-    .sort((a, b) =>
-      new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime()
-    );
+    .sort((a, b) => new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime());
 
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const paginatedJobs = filteredJobs.slice(
     (currentPage - 1) * jobsPerPage,
-    currentPage * jobsPerPage
+    currentPage * jobsPerPage,
   );
 
+  /* ─────────── Render ─────────── */
   return (
     <motion.main
       initial={{ opacity: 0, y: 20 }}
@@ -117,7 +102,7 @@ export default function Home() {
           🌍💼 High-quality, fully remote jobs that you can do from any country 🖥️✨
         </h2>
         <p className="text-sm sm:text-base text-gray-600 mt-2">
-          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon — anywhere.
+          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon — anywhere.
         </p>
       </motion.div>
 
@@ -134,7 +119,7 @@ export default function Home() {
           type="text"
           placeholder="Search by title, company, or category..."
           value={inputTerm}
-          onChange={(e) => setInputTerm(e.target.value)}
+          onChange={e => setInputTerm(e.target.value)}
           className="px-5 py-3 border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm placeholder-gray-400 text-gray-700"
         />
         <button
@@ -146,8 +131,8 @@ export default function Home() {
 
         <Listbox
           value={selectedCategory}
-          onChange={(value) => {
-            setSelectedCategory(value);
+          onChange={v => {
+            setSelectedCategory(v);
             setCurrentPage(1);
             setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
           }}
@@ -158,17 +143,17 @@ export default function Home() {
               <FaChevronDown className="ml-2 text-gray-500" />
             </Listbox.Button>
             <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-              {categories.map((category) => (
+              {categories.map(cat => (
                 <Listbox.Option
-                  key={category}
-                  value={category}
+                  key={cat}
+                  value={cat}
                   className={({ active }) =>
                     `cursor-pointer select-none px-4 py-2 ${
                       active ? 'bg-blue-100 text-blue-800' : 'text-gray-800'
                     }`
                   }
                 >
-                  {category || 'All Categories'}
+                  {cat || 'All Categories'}
                 </Listbox.Option>
               ))}
             </Listbox.Options>
@@ -179,13 +164,13 @@ export default function Home() {
       {/* Job List */}
       <div ref={jobListRef} className="space-y-4">
         {paginatedJobs.length > 0 ? (
-          paginatedJobs.map((job) => (
+          paginatedJobs.map(job => (
             <JobCard
               key={job.id}
               job={job}
               bookmarked={bookmarked}
               toggleBookmark={toggleBookmark}
-              showBookmark={true}
+              showBookmark
             />
           ))
         ) : (
@@ -195,25 +180,44 @@ export default function Home() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-8 space-x-4">
+        <nav className="mt-10 flex justify-center items-center gap-4">
+          {/* Prev */}
           <button
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50"
+            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+            className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold shadow
+              ${currentPage === 1
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-300 transition-colors'}
+            `}
           >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.707 14.707a1 1 0 01-1.414 0L6.586 10l4.707-4.707a1 1 0 011.414 1.414L9.414 10l3.293 3.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
             Previous
           </button>
-          <span className="px-4 py-2 bg-white text-gray-700 border rounded-md">
-            Page {currentPage} of {totalPages}
+
+          {/* Page indicator */}
+          <span className="select-none text-sm text-gray-600">
+            Page <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
           </span>
+
+          {/* Next */}
           <button
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md disabled:opacity-50"
+            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+            className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold shadow
+              ${currentPage === totalPages
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 transition-colors'}
+            `}
           >
             Next
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 5.293a1 1 0 011.414 0L13.707 10l-5 4.707a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
           </button>
-        </div>
+        </nav>
       )}
     </motion.main>
   );

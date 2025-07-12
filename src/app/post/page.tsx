@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { useUser } from '@/context/UserContext';
+import PaystackInlineButton from '@/components/PaystackInlineButton';
 import {
   FaBriefcase, FaBuilding, FaMapMarkerAlt, FaDollarSign,
-  FaAlignLeft, FaPaperPlane
+  FaAlignLeft, FaPaperPlane,
 } from 'react-icons/fa';
 import { MdCategory, MdAccessTime } from 'react-icons/md';
 
@@ -26,45 +27,65 @@ export default function PostJobForm() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [draftId, setDraftId] = useState<number | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!user) {
-      alert('You must be logged in to post a job.');
-      return;
-    }
+  /* Step 1 – save draft */
+  const saveDraft = async () => {
+    if (!user) return alert('Please log in.');
 
     setLoading(true);
+    const logo =
+      `https://logo.clearbit.com/${form.company.trim().toLowerCase().replace(/\s+/g, '')}.com`;
 
-    const domain = form.company.trim().toLowerCase().replace(/\s+/g, '') + '.com';
-    const logo = `https://logo.clearbit.com/${domain}`;
-
-    const { error } = await supabase.from('jobs').insert([{
-      ...form,
-      location: form.location || 'Worldwide',
-      logo,
-      user_id: user.id,
-      datePosted: new Date().toISOString(),
-    }]);
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert([{
+        ...form,
+        location: form.location || 'Worldwide',
+        logo,
+        user_id: user.id,
+        datePosted: new Date().toISOString(),
+        published: false,
+      }])
+      .select('id')
+      .single();
 
     setLoading(false);
-
-    if (error) {
-      console.error('Error posting job:', error);
-      alert('Something went wrong while posting the job.');
-    } else {
-      alert('✅ Job posted successfully!');
-      router.push('/');
-    }
+    if (error) return alert('Error saving draft job.');
+    setDraftId(data.id);
   };
 
+  /* After webhook publishes */
+  const handleSuccessPopup = () => {
+    alert('✅ Payment made! Your job will appear once Paystack confirms.');
+    router.push('/');
+  };
+
+  if (!user) return <div className="p-6">Please log in to post a job.</div>;
+
+  /* Step 2 – show payment button */
+  if (draftId) {
+    return (
+      <div className="p-6 max-w-xl mx-auto space-y-4">
+        <h2 className="text-xl font-bold text-center text-blue-800">
+          Pay $100 to Publish Your Job
+        </h2>
+
+        <PaystackInlineButton
+          email={user.email}
+          jobId={draftId}
+          onSuccess={handleSuccessPopup}
+          onClose={() => alert('Payment window closed')}
+        />
+      </div>
+    );
+  }
+
+  /* Form to create draft */
   return (
     <main className="max-w-2xl mx-auto p-6 animate-fadeInUp">
       <h1 className="text-3xl font-extrabold text-center mb-6 text-blue-800">
@@ -72,9 +93,11 @@ export default function PostJobForm() {
       </h1>
 
       <form
-        onSubmit={handleSubmit}
-        className="space-y-6 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-blue-100 transition-all"
+        onSubmit={(e) => { e.preventDefault(); saveDraft(); }}
+        className="space-y-6 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-blue-100"
       >
+        {loading && <p className="text-sm text-gray-500">Saving draft…</p>}
+
         {[
           { icon: <FaBriefcase />, name: 'title', placeholder: 'Job Title', type: 'text' },
           { icon: <FaBuilding />, name: 'company', placeholder: 'Company Name', type: 'text' },
@@ -174,7 +197,7 @@ export default function PostJobForm() {
           className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition"
         >
           <FaPaperPlane className="text-white" />
-          {loading ? 'Posting...' : 'Post Job'}
+          {loading ? 'Saving…' : 'Continue to Payment'}
         </button>
       </form>
     </main>
