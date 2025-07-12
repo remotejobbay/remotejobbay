@@ -6,8 +6,12 @@ import { supabase } from '@/utils/supabase/supabaseClient';
 import { useUser } from '@/context/UserContext';
 import PaystackInlineButton from '@/components/PaystackInlineButton';
 import {
-  FaBriefcase, FaBuilding, FaMapMarkerAlt, FaDollarSign,
-  FaAlignLeft, FaPaperPlane,
+  FaBriefcase,
+  FaBuilding,
+  FaMapMarkerAlt,
+  FaDollarSign,
+  FaAlignLeft,
+  FaPaperPlane,
 } from 'react-icons/fa';
 import { MdCategory, MdAccessTime } from 'react-icons/md';
 
@@ -15,6 +19,7 @@ export default function PostJobForm() {
   const { user } = useUser();
   const router = useRouter();
 
+  /* ── Form state ─────────────────────────────────────────── */
   const [form, setForm] = useState({
     title: '',
     company: '',
@@ -25,67 +30,74 @@ export default function PostJobForm() {
     salaryType: '',
     description: '',
   });
-
   const [loading, setLoading] = useState(false);
-  const [draftId, setDraftId] = useState<number | null>(null);
+  const [draftId, setDraftId] = useState<number | null>(null); // job row ID
 
+  /* ── Helpers ────────────────────────────────────────────── */
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  /* Step 1 – save draft */
+  /* Step 1: save an unpublished draft row ------------------- */
   const saveDraft = async () => {
-    if (!user) return alert('Please log in.');
-
+    if (!user) return alert('Please log in to post a job.');
     setLoading(true);
-    const logo =
-      `https://logo.clearbit.com/${form.company.trim().toLowerCase().replace(/\s+/g, '')}.com`;
+
+    const logo = `https://logo.clearbit.com/${form.company
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '')}.com`;
 
     const { data, error } = await supabase
       .from('jobs')
-      .insert([{
-        ...form,
-        location: form.location || 'Worldwide',
-        logo,
-        user_id: user.id,
-        datePosted: new Date().toISOString(),
-        published: false,
-      }])
+      .insert([
+        {
+          ...form,
+          location: form.location || 'Worldwide',
+          logo,
+          user_id: user.id,
+          datePosted: new Date().toISOString(),
+          published: false, // keep hidden until payment webhook
+        },
+      ])
       .select('id')
       .single();
 
     setLoading(false);
     if (error) return alert('Error saving draft job.');
-    setDraftId(data.id);
+
+    setDraftId(data.id); // move to Step 2 (payment)
   };
 
-  /* After webhook publishes */
-  const handleSuccessPopup = () => {
-    alert('✅ Payment made! Your job will appear once Paystack confirms.');
+  /* Paystack callback -------------------------------------- */
+  const handlePaySuccess = (reference: string) => {
+    // Show quick feedback; webhook will publish row soon
+    alert('✅ Payment successful! Your job will appear once Paystack confirms.');
     router.push('/');
   };
 
-  if (!user) return <div className="p-6">Please log in to post a job.</div>;
+  /* Redirect if not logged in ------------------------------ */
+  if (!user) return <p className="p-6">Please log in to post a job.</p>;
 
-  /* Step 2 – show payment button */
+  /* Step 2: show Paystack button --------------------------- */
   if (draftId) {
     return (
-      <div className="p-6 max-w-xl mx-auto space-y-4">
+      <div className="p-6 max-w-xl mx-auto space-y-5">
         <h2 className="text-xl font-bold text-center text-blue-800">
           Pay $100 to Publish Your Job
         </h2>
 
         <PaystackInlineButton
           email={user.email}
-          jobId={draftId}
-          onSuccess={handleSuccessPopup}
+          jobId={draftId}         /* pass draft row ID */
+          onSuccess={handlePaySuccess}
           onClose={() => alert('Payment window closed')}
         />
       </div>
     );
   }
 
-  /* Form to create draft */
+  /* Step 0: initial form ----------------------------------- */
   return (
     <main className="max-w-2xl mx-auto p-6 animate-fadeInUp">
       <h1 className="text-3xl font-extrabold text-center mb-6 text-blue-800">
@@ -93,18 +105,39 @@ export default function PostJobForm() {
       </h1>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); saveDraft(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          saveDraft();
+        }}
         className="space-y-6 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-blue-100"
       >
-        {loading && <p className="text-sm text-gray-500">Saving draft…</p>}
+        {loading && (
+          <p className="text-sm text-gray-500 mb-2">Saving draft…</p>
+        )}
 
+        {/* Text inputs */}
         {[
-          { icon: <FaBriefcase />, name: 'title', placeholder: 'Job Title', type: 'text' },
-          { icon: <FaBuilding />, name: 'company', placeholder: 'Company Name', type: 'text' },
-          { icon: <FaMapMarkerAlt />, name: 'location', placeholder: 'Location (e.g. Worldwide)', type: 'text' },
+          {
+            icon: <FaBriefcase />,
+            name: 'title',
+            placeholder: 'Job Title',
+            type: 'text',
+          },
+          {
+            icon: <FaBuilding />,
+            name: 'company',
+            placeholder: 'Company Name',
+            type: 'text',
+          },
+          {
+            icon: <FaMapMarkerAlt />,
+            name: 'location',
+            placeholder: 'Location (e.g. Worldwide)',
+            type: 'text',
+          },
         ].map(({ icon, name, placeholder, type }) => (
           <div className="flex items-center gap-3" key={name}>
-            <div className="text-blue-600">{icon}</div>
+            <span className="text-blue-600">{icon}</span>
             <input
               type={type}
               name={name}
@@ -117,6 +150,7 @@ export default function PostJobForm() {
           </div>
         ))}
 
+        {/* Selects */}
         <div className="flex items-center gap-3">
           <MdAccessTime className="text-blue-600" />
           <select
@@ -151,6 +185,7 @@ export default function PostJobForm() {
           </select>
         </div>
 
+        {/* Salary inputs */}
         <div className="flex items-center gap-3">
           <FaDollarSign className="text-blue-600" />
           <input
@@ -179,6 +214,7 @@ export default function PostJobForm() {
           </select>
         </div>
 
+        {/* Description */}
         <div className="flex items-start gap-3">
           <FaAlignLeft className="text-blue-600 mt-2" />
           <textarea
@@ -191,6 +227,7 @@ export default function PostJobForm() {
           />
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}

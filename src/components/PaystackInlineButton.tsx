@@ -1,50 +1,59 @@
 'use client';
 
 import { useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
   email: string;
   jobId: number;
-  onSuccess: () => void;
+  onSuccess: (reference: string) => void; // <-- now passes ref
   onClose: () => void;
 }
 
-export default function PaystackInlineButton({ email, jobId, onSuccess, onClose }: Props) {
+export default function PaystackInlineButton({
+  email,
+  jobId,
+  onSuccess,
+  onClose,
+}: Props) {
+  /* ── Keys & refs ─────────────────────────────────────── */
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_KEY!;
-  const reference = `job_${jobId}_${Date.now()}`;
+  const reference = `job_${jobId}_${uuidv4()}`;
 
+  /* ── Load Paystack script once ───────────────────────── */
   useEffect(() => {
     const id = 'paystack-inline-js';
     if (!document.getElementById(id)) {
       const s = document.createElement('script');
       s.id = id;
-      s.src = 'https://js.paystack.co/v2/inline.js';
+      s.src = 'https://js.paystack.co/v1/inline.js';
       s.async = true;
       document.body.appendChild(s);
     }
   }, []);
 
+  /* ── Trigger payment ─────────────────────────────────── */
   const pay = () => {
-    // @ts-ignore
-    const ps = window.PaystackPop?.setup({
+    // @ts-ignore PaystackPop global provided by script
+    const handler = window.PaystackPop.setup({
       key: publicKey,
       email,
-      amount: 150000,      // 💰 1 500 GHS in pesewas (= $100 approx)
-      currency: 'GHS',     // must be GHS for Ghana merchant
+      amount: 150000,           // ₵1 500 in pesewas (≈ $100)
+      currency: 'GHS',          // must remain GHS for Ghanaian merchants
       reference,
       metadata: { jobId },
-      callback: onSuccess,
+      callback: (resp: any) => onSuccess(resp.reference),
       onClose,
     });
-    ps?.openIframe();
+    handler.openIframe();
   };
 
   return (
     <button
       onClick={pay}
-      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-md shadow"
+      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition-colors"
     >
-      Pay $100 (GHS 1 500)
+      Pay $100
     </button>
   );
 }
