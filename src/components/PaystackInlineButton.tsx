@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
   email: string;
-  jobId: number;
-  onSuccess: (reference: string) => void; // <-- now passes ref
+  jobId: number; // ✅ changed from string to number
+  onSuccess: (reference: string) => void;
   onClose: () => void;
 }
 
@@ -38,8 +38,8 @@ export default function PaystackInlineButton({
     const handler = window.PaystackPop.setup({
       key: publicKey,
       email,
-      amount: 150000,           // ₵1 500 in pesewas (≈ $100)
-      currency: 'GHS',          // must remain GHS for Ghanaian merchants
+      amount: 150000, // ₵1 500 in pesewas (≈ $100)
+      currency: 'GHS',
       reference,
       metadata: { jobId },
       callback: (resp: any) => onSuccess(resp.reference),

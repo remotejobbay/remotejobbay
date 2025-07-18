@@ -22,7 +22,7 @@ export default function PostJobPage() {
 
   const [paymentOk, setPaymentOk] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [paystackJobId] = useState<string>(() => Date.now().toString());
+  const [paystackJobId] = useState<number>(() => Date.now()); // ✅ CHANGED to number
 
   const [form, setForm] = useState({
     title: '',
@@ -63,10 +63,10 @@ export default function PostJobPage() {
       datePosted: new Date().toISOString(),
       paid: true,
       published: true,
-      paystack_ref: paystackJobId,
+      paystack_ref: paystackJobId.toString(), // ✅ convert to string before insert
     };
 
-    console.log('📤 Inserting job data:', jobData); // ✅ Debug log
+    console.log('📤 Inserting job data:', jobData);
 
     const { error } = await supabase.from('jobs').insert([jobData]);
 
@@ -91,7 +91,7 @@ export default function PostJobPage() {
         </h1>
 
         <PaystackInlineButton
-          jobId={paystackJobId}
+          jobId={paystackJobId} // ✅ now a number
           email={user.email}
           onSuccess={handlePaySuccess}
           onClose={() => alert('Payment window closed.')}
@@ -115,7 +115,7 @@ export default function PostJobPage() {
       >
         {loading && <p className="text-sm text-gray-500">Posting job…</p>}
 
-        {[ 
+        {[
           { icon: <FaBriefcase />, name: 'title', placeholder: 'Job Title' },
           { icon: <FaBuilding />, name: 'company', placeholder: 'Company Name' },
           { icon: <FaMapMarkerAlt />, name: 'location', placeholder: 'Location (e.g. Worldwide)' },
