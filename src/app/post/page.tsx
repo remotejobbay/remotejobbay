@@ -20,9 +20,9 @@ export default function PostJobPage() {
   const { user } = useUser();
   const router = useRouter();
 
-  /* ── UI state ─────────────────────────────────────────── */
   const [paymentOk, setPaymentOk] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [paystackJobId] = useState<string>(() => Date.now().toString());
 
   const [form, setForm] = useState({
     title: '',
@@ -35,18 +35,16 @@ export default function PostJobPage() {
     description: '',
   });
 
-  /* ── Helpers ──────────────────────────────────────────── */
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  /* ── Paystack callback ───────────────────────────────── */
-  const handlePaySuccess = (reference: string) => {
-    // You can optionally verify the payment here with Paystack’s verify endpoint.
+  const handlePaySuccess = () => {
     setPaymentOk(true);
   };
 
-  /* ── Insert job row after payment ────────────────────── */
   const publishJob = async () => {
     if (!user) return alert('Please log in.');
 
@@ -57,33 +55,34 @@ export default function PostJobPage() {
       .toLowerCase()
       .replace(/\s+/g, '')}.com`;
 
-    const { error } = await supabase.from('jobs').insert([
-      {
-        ...form,
-        location: form.location || 'Worldwide',
-        logo,
-        user_id: user.id,
-        datePosted: new Date().toISOString(),
-        paid: true,
-        published: true,
-      },
-    ]);
+    const jobData = {
+      ...form,
+      location: form.location || 'Worldwide',
+      logo,
+      user_id: user.id,
+      datePosted: new Date().toISOString(),
+      paid: true,
+      published: true,
+      paystack_ref: paystackJobId,
+    };
+
+    console.log('📤 Inserting job data:', jobData); // ✅ Debug log
+
+    const { error } = await supabase.from('jobs').insert([jobData]);
 
     setLoading(false);
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      return alert('Error posting job.');
+      console.error('❌ Supabase insert error:', error);
+      return alert('Error posting job. Please check the form and try again.');
     }
 
     alert('✅ Job posted successfully!');
     router.push('/');
   };
 
-  /* ── Guards ──────────────────────────────────────────── */
   if (!user) return <p className="p-6">Please log in to post a job.</p>;
 
-  /* ── Step 1: payment screen ──────────────────────────── */
   if (!paymentOk) {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6 text-center">
@@ -92,6 +91,7 @@ export default function PostJobPage() {
         </h1>
 
         <PaystackInlineButton
+          jobId={paystackJobId}
           email={user.email}
           onSuccess={handlePaySuccess}
           onClose={() => alert('Payment window closed.')}
@@ -100,7 +100,6 @@ export default function PostJobPage() {
     );
   }
 
-  /* ── Step 2: show form ───────────────────────────────── */
   return (
     <main className="max-w-2xl mx-auto p-6 animate-fadeInUp">
       <h1 className="text-3xl font-extrabold text-center mb-6 text-blue-800">
@@ -116,15 +115,10 @@ export default function PostJobPage() {
       >
         {loading && <p className="text-sm text-gray-500">Posting job…</p>}
 
-        {/* Text inputs */}
-        {[
+        {[ 
           { icon: <FaBriefcase />, name: 'title', placeholder: 'Job Title' },
           { icon: <FaBuilding />, name: 'company', placeholder: 'Company Name' },
-          {
-            icon: <FaMapMarkerAlt />,
-            name: 'location',
-            placeholder: 'Location (e.g. Worldwide)',
-          },
+          { icon: <FaMapMarkerAlt />, name: 'location', placeholder: 'Location (e.g. Worldwide)' },
         ].map(({ icon, name, placeholder }) => (
           <div className="flex items-center gap-3" key={name}>
             <span className="text-blue-600">{icon}</span>
@@ -140,7 +134,6 @@ export default function PostJobPage() {
           </div>
         ))}
 
-        {/* Selects */}
         <div className="flex items-center gap-3">
           <MdAccessTime className="text-blue-600" />
           <select
@@ -175,7 +168,6 @@ export default function PostJobPage() {
           </select>
         </div>
 
-        {/* Salary inputs */}
         <div className="flex items-center gap-3">
           <FaDollarSign className="text-blue-600" />
           <input
@@ -204,7 +196,6 @@ export default function PostJobPage() {
           </select>
         </div>
 
-        {/* Description */}
         <div className="flex items-start gap-3">
           <FaAlignLeft className="text-blue-600 mt-2" />
           <textarea
@@ -217,7 +208,6 @@ export default function PostJobPage() {
           />
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
