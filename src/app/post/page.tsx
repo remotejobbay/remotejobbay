@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { useUser } from '@/context/UserContext';
 import PaystackInlineButton from '@/components/PaystackInlineButton';
+
 import {
   FaBriefcase,
   FaBuilding,
@@ -15,11 +16,14 @@ import {
 } from 'react-icons/fa';
 import { MdCategory, MdAccessTime } from 'react-icons/md';
 
-export default function PostJobForm() {
+export default function PostJobPage() {
   const { user } = useUser();
   const router = useRouter();
 
-  /* ── Form state ─────────────────────────────────────────── */
+  /* ── UI state ─────────────────────────────────────────── */
+  const [paymentOk, setPaymentOk] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     title: '',
     company: '',
@@ -30,17 +34,22 @@ export default function PostJobForm() {
     salaryType: '',
     description: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [draftId, setDraftId] = useState<number | null>(null); // job row ID
 
-  /* ── Helpers ────────────────────────────────────────────── */
+  /* ── Helpers ──────────────────────────────────────────── */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  /* Step 1: save an unpublished draft row ------------------- */
-  const saveDraft = async () => {
-    if (!user) return alert('Please log in to post a job.');
+  /* ── Paystack callback ───────────────────────────────── */
+  const handlePaySuccess = (reference: string) => {
+    // You can optionally verify the payment here with Paystack’s verify endpoint.
+    setPaymentOk(true);
+  };
+
+  /* ── Insert job row after payment ────────────────────── */
+  const publishJob = async () => {
+    if (!user) return alert('Please log in.');
+
     setLoading(true);
 
     const logo = `https://logo.clearbit.com/${form.company
@@ -48,60 +57,50 @@ export default function PostJobForm() {
       .toLowerCase()
       .replace(/\s+/g, '')}.com`;
 
-    const { data, error } = await supabase
-      .from('jobs')
-      .insert([
-        {
-          ...form,
-          location: form.location || 'Worldwide',
-          logo,
-          user_id: user.id,
-          datePosted: new Date().toISOString(),
-          published: false, // keep hidden until payment webhook
-        },
-      ])
-      .select('id')
-      .single();
+    const { error } = await supabase.from('jobs').insert([
+      {
+        ...form,
+        location: form.location || 'Worldwide',
+        logo,
+        user_id: user.id,
+        datePosted: new Date().toISOString(),
+        paid: true,
+        published: true,
+      },
+    ]);
 
     setLoading(false);
 
-    // 🔥 NEW: log full error details
     if (error) {
       console.error('Supabase insert error:', error);
-      return alert('Error saving draft job. Check console for details.');
+      return alert('Error posting job.');
     }
 
-    setDraftId(data.id); // move to Step 2 (payment)
-  };
-
-  /* Paystack callback -------------------------------------- */
-  const handlePaySuccess = (reference: string) => {
-    alert('✅ Payment successful! Your job will appear once Paystack confirms.');
+    alert('✅ Job posted successfully!');
     router.push('/');
   };
 
-  /* Redirect if not logged in ------------------------------ */
+  /* ── Guards ──────────────────────────────────────────── */
   if (!user) return <p className="p-6">Please log in to post a job.</p>;
 
-  /* Step 2: show Paystack button --------------------------- */
-  if (draftId) {
+  /* ── Step 1: payment screen ──────────────────────────── */
+  if (!paymentOk) {
     return (
-      <div className="p-6 max-w-xl mx-auto space-y-5">
-        <h2 className="text-xl font-bold text-center text-blue-800">
-          Pay $100 to Publish Your Job
-        </h2>
+      <div className="p-6 max-w-xl mx-auto space-y-6 text-center">
+        <h1 className="text-3xl font-extrabold text-blue-800">
+          Pay $100 to Post Your Job
+        </h1>
 
         <PaystackInlineButton
           email={user.email}
-          jobId={draftId}         /* pass draft row ID */
           onSuccess={handlePaySuccess}
-          onClose={() => alert('Payment window closed')}
+          onClose={() => alert('Payment window closed.')}
         />
       </div>
     );
   }
 
-  /* Step 0: initial form ----------------------------------- */
+  /* ── Step 2: show form ───────────────────────────────── */
   return (
     <main className="max-w-2xl mx-auto p-6 animate-fadeInUp">
       <h1 className="text-3xl font-extrabold text-center mb-6 text-blue-800">
@@ -111,19 +110,21 @@ export default function PostJobForm() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          saveDraft();
+          publishJob();
         }}
         className="space-y-6 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-blue-100"
       >
-        {loading && (
-          <p className="text-sm text-gray-500 mb-2">Saving draft…</p>
-        )}
+        {loading && <p className="text-sm text-gray-500">Posting job…</p>}
 
         {/* Text inputs */}
         {[
-          { icon: <FaBriefcase />, name: 'title',    placeholder: 'Job Title' },
-          { icon: <FaBuilding />,  name: 'company',  placeholder: 'Company Name' },
-          { icon: <FaMapMarkerAlt />, name: 'location', placeholder: 'Location (e.g. Worldwide)' },
+          { icon: <FaBriefcase />, name: 'title', placeholder: 'Job Title' },
+          { icon: <FaBuilding />, name: 'company', placeholder: 'Company Name' },
+          {
+            icon: <FaMapMarkerAlt />,
+            name: 'location',
+            placeholder: 'Location (e.g. Worldwide)',
+          },
         ].map(({ icon, name, placeholder }) => (
           <div className="flex items-center gap-3" key={name}>
             <span className="text-blue-600">{icon}</span>
@@ -222,8 +223,8 @@ export default function PostJobForm() {
           disabled={loading}
           className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition"
         >
-          <FaPaperPlane className="text-white" />
-          {loading ? 'Saving…' : 'Continue to Payment'}
+          <FaPaperPlane />
+          {loading ? 'Posting…' : 'Publish Job'}
         </button>
       </form>
     </main>
