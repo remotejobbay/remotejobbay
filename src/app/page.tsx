@@ -29,7 +29,6 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const jobListRef = useRef<HTMLDivElement>(null);
 
-  /* ─────────── Fetch jobs ─────────── */
   useEffect(() => {
     const fetchJobs = async () => {
       const { data, error } = await supabase
@@ -43,13 +42,11 @@ export default function Home() {
     fetchJobs();
   }, []);
 
-  /* ─────────── Load bookmarks ─────────── */
   useEffect(() => {
     const saved = localStorage.getItem('bookmarkedJobs');
     if (saved) setBookmarked(JSON.parse(saved));
   }, []);
 
-  /* ─────────── Helpers ─────────── */
   const toggleBookmark = (id: string | number) => {
     if (!user) return alert('Please log in to save jobs.');
     const idStr = String(id);
@@ -66,7 +63,6 @@ export default function Home() {
     setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
-  /* ─────────── Filter + paginate ─────────── */
   const filteredJobs = jobs
     .filter(j => {
       const matchSearch = (j.title + j.company + j.location)
@@ -83,7 +79,6 @@ export default function Home() {
     currentPage * jobsPerPage,
   );
 
-  /* ─────────── Render ─────────── */
   return (
     <motion.main
       initial={{ opacity: 0, y: 20 }}
@@ -178,46 +173,50 @@ export default function Home() {
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - new colorful modern style */}
       {totalPages > 1 && (
-        <nav className="mt-10 flex justify-center items-center gap-4">
+        <div className="flex justify-center items-center space-x-2 mt-10">
           {/* Prev */}
           <button
-            disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold shadow
-              ${currentPage === 1
+            disabled={currentPage === 1}
+            className={`rounded-full p-2 px-4 text-sm font-medium transition shadow ${
+              currentPage === 1
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-300 transition-colors'}
-            `}
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
           >
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 14.707a1 1 0 01-1.414 0L6.586 10l4.707-4.707a1 1 0 011.414 1.414L9.414 10l3.293 3.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-            Previous
+            ‹ Prev
           </button>
 
-          {/* Page indicator */}
-          <span className="select-none text-sm text-gray-600">
-            Page <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
-          </span>
+          {/* Pages */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition shadow ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
 
           {/* Next */}
           <button
-            disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            className={`flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold shadow
-              ${currentPage === totalPages
+            disabled={currentPage === totalPages}
+            className={`rounded-full p-2 px-4 text-sm font-medium transition shadow ${
+              currentPage === totalPages
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700 transition-colors'}
-            `}
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
           >
-            Next
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 5.293a1 1 0 011.414 0L13.707 10l-5 4.707a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
+            Next ›
           </button>
-        </nav>
+        </div>
       )}
     </motion.main>
   );
