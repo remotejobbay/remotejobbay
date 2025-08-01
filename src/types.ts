@@ -10,6 +10,6 @@ export type Job = {
   category: string;
   salary: string;
   salaryType: 'hourly' | 'yearly';
-    applyUrl?: string; // ✅ Add this line
-
+  applyUrl?: string; // ✅ Optional apply URL
+  slug: string;      // ✅ Added slug field for SEO URLs
 };

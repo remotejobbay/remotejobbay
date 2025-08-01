@@ -76,7 +76,7 @@ export default function JobCard({
       {/* Job title & company */}
       <div>
         <Link
-          href={`/jobs/${job.id}`}
+          href={`/jobs/${job.slug}`}
           onClick={trackClick}
           className="block focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
         >
@@ -146,6 +146,3 @@ export default function JobCard({
     </motion.article>
   );
 }
-
-/* ──────────────────────────────────────────────────────────────
-   Tailwind badge helpers: add once in globals.css (optional)   */

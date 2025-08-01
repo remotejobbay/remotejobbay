@@ -13,7 +13,7 @@ import { supabase } from '@/utils/supabase/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function JobDetail() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [job, setJob] = useState<Job | null>(null);
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export default function JobDetail() {
         const { data: currentJob, error } = await supabase
           .from('jobs')
           .select('*')
-          .eq('id', id)
+          .eq('slug', slug)
           .single();
 
         if (error || !currentJob || !currentJob.applyUrl || currentJob.applyUrl.trim() === '') {
@@ -36,7 +36,6 @@ export default function JobDetail() {
 
         setJob(currentJob);
 
-        // ✅ GA Event: Track job view
         if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
           window.gtag('event', 'job_view', {
             event_category: 'jobs',
@@ -61,7 +60,7 @@ export default function JobDetail() {
     }
 
     fetchJobAndSimilar();
-  }, [id]);
+  }, [slug]);
 
   useEffect(() => {
     const saved = localStorage.getItem('bookmarkedJobs');
@@ -94,7 +93,6 @@ export default function JobDetail() {
   const handleApplyClick = () => {
     if (!job) return;
 
-    // ✅ GA Event: Track Apply Click
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       window.gtag('event', 'job_apply', {
         event_category: 'jobs',
@@ -125,7 +123,6 @@ export default function JobDetail() {
       </Link>
 
       <div className="grid md:grid-cols-3 gap-10">
-        {/* MAIN JOB INFO */}
         <div className="md:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -175,7 +172,7 @@ export default function JobDetail() {
               href={job.applyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={handleApplyClick} // ✅ Track Apply
+              onClick={handleApplyClick}
               className={`px-6 py-2 rounded-md shadow text-white transition-colors duration-200 ease-in-out ${
                 job.applyUrl ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
               }`}
@@ -184,7 +181,6 @@ export default function JobDetail() {
             </a>
           </div>
 
-          {/* Job Summary on Mobile */}
           <section className="md:hidden bg-yellow-50 border border-yellow-200 p-6 rounded-xl shadow space-y-4 mb-10">
             <h2 className="text-xl font-bold text-yellow-800 flex items-center gap-2"><FaBriefcase /> Job Summary</h2>
             <ul className="text-sm text-yellow-900 space-y-2">
@@ -198,7 +194,6 @@ export default function JobDetail() {
             </ul>
           </section>
 
-          {/* SIMILAR JOBS */}
           {similarJobs.length > 0 && (
             <section className="mb-16">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Similar Jobs</h2>
@@ -216,7 +211,7 @@ export default function JobDetail() {
                     {similarJobs.map(sim => (
                       <tr key={sim.id} className="hover:bg-gray-50">
                         <td className="p-3">
-                          <Link href={`/jobs/${sim.id}`} className="text-blue-600 hover:underline">
+                          <Link href={`/jobs/${sim.slug}`} className="text-blue-600 hover:underline">
                             {sim.title}
                           </Link>
                         </td>
@@ -234,7 +229,6 @@ export default function JobDetail() {
           <EmailSubscription />
         </div>
 
-        {/* Desktop Sidebar Summary */}
         <aside className="hidden md:block bg-yellow-50 border border-yellow-200 p-6 rounded-xl shadow space-y-4 sticky top-24 h-fit">
           <h2 className="text-xl font-bold text-yellow-800 flex items-center gap-2"><FaBriefcase /> Job Summary</h2>
           <ul className="text-sm text-yellow-900 space-y-2">
