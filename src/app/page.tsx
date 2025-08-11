@@ -58,17 +58,24 @@ export default function Home() {
   };
 
   const handleSearch = () => {
-    setSearchTerm(inputTerm);
+    setSearchTerm(inputTerm.trim());
     setCurrentPage(1);
     setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
   const filteredJobs = jobs
     .filter(j => {
-      const matchSearch = (j.title + j.company + j.location)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      // If no search term or category, return all jobs
+      if (!searchTerm && !selectedCategory) return true;
+
+      // Split search term into keywords and check if any keyword matches
+      const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k);
+      const jobText = `${j.title} ${j.company} ${j.location} ${j.category}`.toLowerCase();
+      const matchSearch = searchTerm ? keywords.some(keyword => jobText.includes(keyword)) : true;
+
+      // Category match (exact match if selected)
       const matchCat = selectedCategory ? j.category === selectedCategory : true;
+
       return matchSearch && matchCat;
     })
     .sort((a, b) => new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime());
@@ -84,42 +91,52 @@ export default function Home() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="max-w-6xl mx-auto p-6 min-h-[80vh]"
+      className="max-w-7xl mx-auto p-6 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
     >
       {/* Hero */}
       <motion.div
-        className="text-center mb-6 bg-gradient-to-r from-blue-100 to-teal-100 py-6 px-4 rounded-xl shadow-sm border border-blue-200"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
+        className="text-center mb-8 bg-gradient-to-r from-teal-200 to-indigo-300 py-12 px-6 rounded-2xl shadow-lg border border-teal-200"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.7, ease: 'easeOut' }}
       >
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-800">
-          🌍💼 High-quality, fully remote jobs that you can do from any country 🖥️✨
-        </h2>
-        <p className="text-sm sm:text-base text-gray-600 mt-2">
-          No Borders. No Limitations. Work from Accra, Mexico City, Hanoi, Lisbon - anywhere.
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-white drop-shadow-md">
+          🌐💼 Discover Remote Jobs Worldwide! ✨
+        </h1>
+        <p className="text-lg sm:text-xl text-teal-50 mt-4 font-medium">
+          Work from anywhere—Accra, Mexico City, Hanoi, Lisbon, or beyond!
         </p>
       </motion.div>
 
       {/* Email Subscription */}
-      <section className="mb-8 max-w-xl mx-auto w-full">
-        <div className="bg-white rounded-xl p-4 shadow-md border border-yellow-200">
+      <section className="mb-8 max-w-2xl mx-auto w-full">
+        <motion.div
+          className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-xl border border-yellow-200/70"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           <EmailSubscription />
-        </div>
+        </motion.div>
       </section>
 
       {/* Search & Filter */}
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-md">
+      <motion.div
+        className="mb-8 flex flex-col sm:flex-row gap-4 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-indigo-200/70"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
         <input
           type="text"
-          placeholder="Search by title, company, or category..."
+          placeholder="Search by title, company, category, or location (e.g., artificial, Google)..."
           value={inputTerm}
           onChange={e => setInputTerm(e.target.value)}
-          className="px-5 py-3 border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm placeholder-gray-400 text-gray-700"
+          className="px-6 py-4 border border-gray-200 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md placeholder-gray-500 text-gray-800 transition-all duration-200"
         />
         <button
           onClick={handleSearch}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg shadow w-full sm:w-auto"
+          className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-6 py-4 rounded-xl shadow-lg w-full sm:w-auto transition-all duration-200"
         >
           Search
         </button>
@@ -133,19 +150,19 @@ export default function Home() {
           }}
         >
           <div className="relative w-full sm:w-[250px]">
-            <Listbox.Button className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 shadow-sm text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <Listbox.Button className="w-full px-6 py-4 border border-gray-200 rounded-xl bg-white text-gray-800 shadow-md text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200">
               {selectedCategory || 'All Categories'}
-              <FaChevronDown className="ml-2 text-gray-500" />
+              <FaChevronDown className="ml-2 text-gray-600" />
             </Listbox.Button>
-            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+            <Listbox.Options className="absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-white py-2 text-base shadow-lg ring-1 ring-gray-200 focus:outline-none z-50">
               {categories.map(cat => (
                 <Listbox.Option
                   key={cat}
                   value={cat}
                   className={({ active }) =>
-                    `cursor-pointer select-none px-4 py-2 ${
-                      active ? 'bg-blue-100 text-blue-800' : 'text-gray-800'
-                    }`
+                    `cursor-pointer select-none px-6 py-3 ${
+                      active ? 'bg-teal-50 text-teal-800' : 'text-gray-800'
+                    } hover:bg-teal-100 transition-all duration-200`
                   }
                 >
                   {cat || 'All Categories'}
@@ -154,10 +171,10 @@ export default function Home() {
             </Listbox.Options>
           </div>
         </Listbox>
-      </div>
+      </motion.div>
 
       {/* Job List */}
-      <div ref={jobListRef} className="space-y-4">
+      <div ref={jobListRef} className="space-y-6">
         {paginatedJobs.length > 0 ? (
           paginatedJobs.map(job => (
             <JobCard
@@ -169,49 +186,44 @@ export default function Home() {
             />
           ))
         ) : (
-          <p className="text-gray-500 text-center">No jobs found.</p>
+          <p className="text-gray-600 text-center text-xl font-medium">No jobs found.</p>
         )}
       </div>
 
-      {/* Pagination - new colorful modern style */}
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2 mt-10">
-          {/* Prev */}
+        <div className="flex justify-center items-center space-x-3 mt-12">
           <button
             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className={`rounded-full p-2 px-4 text-sm font-medium transition shadow ${
+            className={`rounded-full p-2 px-5 text-sm font-medium transition-all duration-200 shadow-lg ${
               currentPage === 1
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
           >
             ‹ Prev
           </button>
-
-          {/* Pages */}
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition shadow ${
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-lg ${
                 currentPage === page
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-200'
+                  ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white'
+                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
               }`}
             >
               {page}
             </button>
           ))}
-
-          {/* Next */}
           <button
             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`rounded-full p-2 px-4 text-sm font-medium transition shadow ${
+            className={`rounded-full p-2 px-5 text-sm font-medium transition-all duration-200 shadow-lg ${
               currentPage === totalPages
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
           >
             Next ›
