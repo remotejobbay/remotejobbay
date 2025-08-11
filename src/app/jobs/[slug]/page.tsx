@@ -242,7 +242,7 @@ export default function JobDetail() {
           <EmailSubscription />
         </div>
 
-        <aside className="hidden md:block sticky top-24 h-fit">
+        <aside className="mt-8 md:mt-0 md:sticky md:top-24 md:h-fit">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
