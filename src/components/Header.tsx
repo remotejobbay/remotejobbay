@@ -35,40 +35,48 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#0f172a] text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <header className="bg-gradient-to-br from-teal-900/80 via-indigo-900/80 to-orange-900/80 backdrop-blur-md text-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           <span className="text-2xl">🌍</span>
           <Link
             href="/"
-            className="text-xl font-bold text-yellow-500 hover:text-yellow-600 transition-colors duration-200"
+            className="text-2xl font-bold text-yellow-400 hover:text-yellow-500 font-poppins transition-colors duration-200 drop-shadow-sm"
           >
-            Remotejobbay
+            RemoteJobBay
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden sm:flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-white">Welcome, {user.email}</span>
+              <span className="text-sm font-medium text-teal-100">
+                Welcome, {user.email.split('@')[0]}
+              </span>
               <button
                 onClick={async () => {
                   await supabase.auth.signOut();
                   window.location.reload();
                 }}
-                className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                className="text-sm bg-red-600/80 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md shadow-md transition duration-200"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm hover:text-blue-400 font-medium">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-teal-200 hover:text-teal-300 font-poppins transition-colors duration-200"
+              >
                 Login
               </Link>
-              <Link href="/signup" className="text-sm hover:text-blue-400 font-medium">
+              <Link
+                href="/signup"
+                className="text-sm font-medium text-teal-200 hover:text-teal-300 font-poppins transition-colors duration-200"
+              >
                 Create Account
               </Link>
             </>
@@ -76,7 +84,7 @@ export default function Header() {
 
           <button
             onClick={handlePostJobClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-md shadow transition duration-200"
+            className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white text-sm font-semibold px-5 py-2 rounded-md shadow-lg transition-all duration-200"
           >
             Post a Job – $100
           </button>

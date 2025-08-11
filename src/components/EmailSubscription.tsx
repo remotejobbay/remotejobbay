@@ -28,7 +28,6 @@ export default function EmailSubscription() {
             event_label: 'Homepage Subscription',
           });
         }
-
       } else {
         alert('Something went wrong. Please try again.');
       }
@@ -39,26 +38,30 @@ export default function EmailSubscription() {
   };
 
   return (
-    <div className="bg-blue-50 p-6 rounded-lg text-center mt-10 shadow-sm border border-blue-100">
-      <h2 className="text-lg font-semibold mb-2 text-gray-700">Get Remote Job Alerts</h2>
+    <div className="bg-gradient-to-br from-teal-100/80 via-indigo-100/80 to-orange-100/80 backdrop-blur-md p-4 rounded-xl text-center shadow-lg border border-teal-200/70 mt-8">
+      <h2 className="text-xl font-semibold mb-3 text-teal-800 font-poppins drop-shadow-sm">
+        Get Exclusive Remote Job Alerts
+      </h2>
       {submitted ? (
-        <p className="text-green-600">✅ Thank you! You'll start receiving alerts soon.</p>
+        <p className="text-teal-600 font-medium text-base">
+          ✅ Thank you! Alerts will arrive soon.
+        </p>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-4"
+          className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-3"
         >
           <input
             type="email"
             placeholder="Enter your email"
-            className="px-4 py-3 rounded-lg border border-gray-300 w-full sm:w-auto shadow-sm text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="px-4 py-2 rounded-lg border border-gray-200 w-full sm:w-auto bg-white/90 backdrop-blur-sm text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200 shadow-md text-gray-800"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <button
             type="submit"
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition duration-300"
+            className="w-full sm:w-auto bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md transition-all duration-200 mt-2 sm:mt-0"
           >
             Subscribe
           </button>
