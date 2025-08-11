@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 
 import './globals.css';
 import { UserProvider } from '@/context/UserContext';
@@ -7,8 +6,30 @@ import Footer from '@/components/Footer';
 import Script from 'next/script';
 
 export const metadata = {
-  title: 'remotejobbay',
+  title: 'RemoteJobBay',
   description: 'High-quality, fully remote jobs that you can do from any country',
+  keywords: 'remote jobs, work from home, global opportunities, remote work',
+  openGraph: {
+    title: 'RemoteJobBay - Remote Jobs Worldwide',
+    description: 'Discover the best remote jobs from anywhere in the world.',
+    url: 'https://www.remotejobbay.com',
+    siteName: 'RemoteJobBay',
+    images: [
+      {
+        url: 'https://www.remotejobbay.com/og-image.jpg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RemoteJobBay - Remote Jobs Worldwide',
+    description: 'Discover the best remote jobs from anywhere in the world.',
+    images: ['https://www.remotejobbay.com/og-image.jpg'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -33,12 +54,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
+        {/* ✅ Google Fonts */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+        {/* ✅ Favicon Placeholder (Replace with your own) */}
+        <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="bg-gray-50 text-gray-900">
+      <body className="bg-gradient-to-br from-teal-50 via-indigo-50 to-orange-50 text-gray-900 min-h-screen font-inter">
         <UserProvider>
-          <Header />
-          {children}
-          <Footer />
+          <div className="relative min-h-screen backdrop-blur-md bg-white/30">
+            <Header />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </UserProvider>
       </body>
     </html>
