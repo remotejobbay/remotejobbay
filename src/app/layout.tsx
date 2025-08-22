@@ -1,11 +1,12 @@
-
 import './globals.css';
 import { UserProvider } from '@/context/UserContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Script from 'next/script';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL("https://www.remotejobbay.com"), // ✅ sets canonical base domain
   title: 'RemoteJobBay',
   description: 'High-quality, fully remote jobs that you can do from any country',
   keywords: 'remote jobs, work from home, global opportunities, remote work',
@@ -59,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
-        {/* ✅ Favicon Placeholder (Replace with your own) */}
+        {/* ✅ Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-gradient-to-br from-teal-50 via-indigo-50 to-orange-50 text-gray-900 min-h-screen font-inter">
