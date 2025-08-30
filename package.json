@@ -9,7 +9,6 @@
     "postbuild": "next-sitemap",
     "start-backend": "cd backend && uvicorn main:app --reload",
     "dev:all": "concurrently \"npm run dev\" \"npm run start-backend\""
-
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Listbox } from '@headlessui/react';
-import { FaChevronDown } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers } from 'react-icons/fa';
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
 import { useUser } from '@/context/UserContext';
@@ -11,18 +10,31 @@ import { supabase } from '@/utils/supabase/supabaseClient';
 import JobCard from '@/components/JobCard';
 
 const categories = [
-  '',
-  'Frontend', 'Backend', 'Design', 'DevOps', 'Product',
-  'Finance', 'Accounting', 'Marketing', 'Sales', 'Customer Support',
-  'Project Management', 'Writing', 'Data Science', 'AI & Machine Learning',
-  'Legal', 'Education', 'Human Resources',
+  { name: 'All', icon: null },
+  { name: 'Frontend', icon: FaCode },
+  { name: 'Backend', icon: FaServer },
+  { name: 'Design', icon: FaPaintBrush },
+  { name: 'DevOps', icon: FaCogs },
+  { name: 'Product', icon: FaBox },
+  { name: 'Finance', icon: FaChartLine },
+  { name: 'Accounting', icon: FaCalculator },
+  { name: 'Marketing', icon: FaBullhorn },
+  { name: 'Sales', icon: FaPhone },
+  { name: 'Customer Support', icon: FaHeadset },
+  { name: 'Project Management', icon: FaTasks },
+  { name: 'Writing', icon: FaPen },
+  { name: 'Data Science', icon: FaDatabase },
+  { name: 'AI & Machine Learning', icon: FaBrain },
+  { name: 'Legal', icon: FaBalanceScale },
+  { name: 'Education', icon: FaChalkboard },
+  { name: 'Human Resources', icon: FaUsers },
 ];
 
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputTerm, setInputTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const { user } = useUser();
   const jobsPerPage = 25;
@@ -65,18 +77,11 @@ export default function Home() {
 
   const filteredJobs = jobs
     .filter(j => {
-      // If no search term or category, return all jobs
-      if (!searchTerm && !selectedCategory) return true;
-
-      // Split search term into keywords and check if any keyword matches
       const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k);
       const jobText = `${j.title} ${j.company} ${j.location} ${j.category}`.toLowerCase();
       const matchSearch = searchTerm ? keywords.some(keyword => jobText.includes(keyword)) : true;
-
-      // Category match (exact match if selected)
-      const matchCat = selectedCategory ? j.category === selectedCategory : true;
-
-      return matchSearch && matchCat;
+      const matchCategory = selectedCategory === 'All' || j.category === selectedCategory;
+      return matchSearch && matchCategory;
     })
     .sort((a, b) => new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime());
 
@@ -120,7 +125,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Search & Filter */}
+      {/* Search */}
       <motion.div
         className="mb-8 flex flex-col sm:flex-row gap-4 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-indigo-200/70"
         initial={{ y: 20, opacity: 0 }}
@@ -140,54 +145,70 @@ export default function Home() {
         >
           Search
         </button>
+      </motion.div>
 
-        <Listbox
-          value={selectedCategory}
-          onChange={v => {
-            setSelectedCategory(v);
-            setCurrentPage(1);
-            setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-          }}
-        >
-          <div className="relative w-full sm:w-[250px]">
-            <Listbox.Button className="w-full px-6 py-4 border border-gray-200 rounded-xl bg-white text-gray-800 shadow-md text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200">
-              {selectedCategory || 'All Categories'}
-              <FaChevronDown className="ml-2 text-gray-600" />
-            </Listbox.Button>
-            <Listbox.Options className="absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-white py-2 text-base shadow-lg ring-1 ring-gray-200 focus:outline-none z-50">
-              {categories.map(cat => (
-                <Listbox.Option
-                  key={cat}
-                  value={cat}
-                  className={({ active }) =>
-                    `cursor-pointer select-none px-6 py-3 ${
-                      active ? 'bg-teal-50 text-teal-800' : 'text-gray-800'
-                    } hover:bg-teal-100 transition-all duration-200`
-                  }
-                >
-                  {cat || 'All Categories'}
-                </Listbox.Option>
-              ))}
-            </Listbox.Options>
-          </div>
-        </Listbox>
+      {/* Category Cardbox with Icons */}
+      <motion.div
+        className="mb-8 p-2 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-indigo-100/50 overflow-x-auto"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
+        <div className="flex gap-4 py-2 px-4">
+          {categories.map(({ name, icon: Icon }) => (
+            <motion.button
+              key={name}
+              onClick={() => {
+                setSelectedCategory(name);
+                setCurrentPage(1);
+                setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+              }}
+              className={`px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${
+                selectedCategory === name
+                  ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+              }`}
+              whileHover={{ scale: 1.05, rotate: 1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {Icon && <Icon className="text-lg" />}
+              {name}
+            </motion.button>
+          ))}
+        </div>
       </motion.div>
 
       {/* Job List */}
       <div ref={jobListRef} className="space-y-6">
-        {paginatedJobs.length > 0 ? (
-          paginatedJobs.map(job => (
-            <JobCard
-              key={job.id}
-              job={job}
-              bookmarked={bookmarked}
-              toggleBookmark={toggleBookmark}
-              showBookmark
-            />
-          ))
-        ) : (
-          <p className="text-gray-600 text-center text-xl font-medium">No jobs found.</p>
-        )}
+        <AnimatePresence>
+          {paginatedJobs.length > 0 ? (
+            paginatedJobs.map(job => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <JobCard
+                  job={job}
+                  bookmarked={bookmarked}
+                  toggleBookmark={toggleBookmark}
+                  showBookmark
+                />
+              </motion.div>
+            ))
+          ) : (
+            <motion.p
+              className="text-gray-600 text-center text-xl font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              No jobs found.
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Pagination */}

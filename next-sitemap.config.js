@@ -1,5 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://remotejobbay.com",
-  generateRobotsTxt: true, // generates robots.txt as well
+  siteUrl: 'https://remotejobbay.com', // your live site URL
+  generateRobotsTxt: true, // also generate robots.txt file
+  sitemapSize: 7000,
 };
