@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers } from 'react-icons/fa';
+import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog } from 'react-icons/fa';
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
 import { useUser } from '@/context/UserContext';
@@ -13,6 +13,10 @@ const categories = [
   { name: 'All', icon: null },
   { name: 'Frontend', icon: FaCode },
   { name: 'Backend', icon: FaServer },
+  { name: 'Fullstack', icon: FaLaptopCode },
+  { name: 'Mobile Development', icon: FaMobileAlt },
+  { name: 'Cybersecurity', icon: FaShieldAlt },
+  { name: 'Engineering Management', icon: FaUserCog },
   { name: 'Design', icon: FaPaintBrush },
   { name: 'DevOps', icon: FaCogs },
   { name: 'Product', icon: FaBox },
@@ -36,6 +40,7 @@ export default function Home() {
   const [inputTerm, setInputTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [bookmarked, setBookmarked] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const jobsPerPage = 25;
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +48,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchJobs = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -50,6 +56,7 @@ export default function Home() {
 
       if (error) console.error('Error fetching jobs:', error.message);
       else setJobs((data || []).filter(j => j.applyUrl?.trim() !== ''));
+      setLoading(false);
     };
     fetchJobs();
   }, []);
@@ -106,10 +113,10 @@ export default function Home() {
         transition={{ delay: 0.1, duration: 0.7, ease: 'easeOut' }}
       >
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white drop-shadow-md">
-          🌐💼 Discover Remote Jobs Worldwide! ✨
+          🌐💼 Fully Remote Jobs! ✨
         </h1>
         <p className="text-lg sm:text-xl text-teal-50 mt-4 font-medium">
-          Work from anywhere—Accra, Mexico City, Hanoi, Lisbon, or beyond!
+          Work from any Country: Mexico, Indonesia, Kenya, or beyond!
         </p>
       </motion.div>
 
@@ -138,10 +145,12 @@ export default function Home() {
           value={inputTerm}
           onChange={e => setInputTerm(e.target.value)}
           className="px-6 py-4 border border-gray-200 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md placeholder-gray-500 text-gray-800 transition-all duration-200"
+          aria-label="Search jobs by title, company, category, or location"
         />
         <button
           onClick={handleSearch}
           className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-6 py-4 rounded-xl shadow-lg w-full sm:w-auto transition-all duration-200"
+          aria-label="Submit job search"
         >
           Search
         </button>
@@ -170,8 +179,10 @@ export default function Home() {
               }`}
               whileHover={{ scale: 1.05, rotate: 1 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={`Filter jobs by ${name} category`}
+              role="button"
             >
-              {Icon && <Icon className="text-lg" />}
+              {Icon && <Icon className="text-lg" aria-hidden="true" />}
               {name}
             </motion.button>
           ))}
@@ -181,7 +192,35 @@ export default function Home() {
       {/* Job List */}
       <div ref={jobListRef} className="space-y-6">
         <AnimatePresence>
-          {paginatedJobs.length > 0 ? (
+          {loading ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-gray-600 text-xl font-medium"
+            >
+              <svg
+                className="animate-spin h-8 w-8 mx-auto text-teal-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"
+                />
+              </svg>
+              Loading jobs...
+            </motion.div>
+          ) : paginatedJobs.length > 0 ? (
             paginatedJobs.map(job => (
               <motion.div
                 key={job.id}
@@ -205,7 +244,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              No jobs found.
+              No jobs found for this category or search. Try selecting "All" or subscribing for new job alerts!
             </motion.p>
           )}
         </AnimatePresence>
@@ -222,6 +261,7 @@ export default function Home() {
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
+            aria-label="Previous page"
           >
             ‹ Prev
           </button>
@@ -234,6 +274,7 @@ export default function Home() {
                   ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white'
                   : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
               }`}
+              aria-label={`Go to page ${page}`}
             >
               {page}
             </button>
@@ -246,6 +287,7 @@ export default function Home() {
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
+            aria-label="Next page"
           >
             Next ›
           </button>
