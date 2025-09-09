@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog } from 'react-icons/fa';
+import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog, FaBug } from 'react-icons/fa';
 import { Job } from '@/types';
 import { supabase } from '@/utils/supabase/supabaseClient';
 
@@ -30,6 +30,7 @@ export default function CategoriesPage() {
     { name: 'Legal', icon: FaBalanceScale },
     { name: 'Education', icon: FaChalkboard },
     { name: 'Human Resources', icon: FaUsers },
+    { name: 'QA Engineer', icon: FaBug },
   ];
 
   const [jobs, setJobs] = useState<Job[]>([]);
