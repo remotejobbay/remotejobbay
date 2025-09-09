@@ -6,7 +6,7 @@ import Script from 'next/script';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.remotejobbay.com"), // ✅ sets canonical base domain
+  metadataBase: new URL('https://www.remotejobbay.com'), // ✅ sets canonical base domain
   title: 'RemoteJobBay',
   description: 'High-quality, fully remote jobs that you can do from any country',
   keywords: 'remote jobs, work from home, global opportunities, remote work',
@@ -37,6 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* ✅ Viewport Meta Tag for Mobile Scaling */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         {/* ✅ Google Analytics Scripts */}
         <Script
           async
@@ -67,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <UserProvider>
           <div className="relative min-h-screen backdrop-blur-md bg-white/30">
             <Header />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
               {children}
             </main>
             <Footer />
