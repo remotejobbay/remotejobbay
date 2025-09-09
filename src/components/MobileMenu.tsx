@@ -72,7 +72,7 @@ export default function MobileMenu() {
               onClick={handlePostJobClick}
               className="mt-3 bg-blue-600 text-white text-center py-2 rounded-md hover:bg-blue-700 transition"
             >
-              Post a Job – $100
+              Post a Job
             </button>
           </nav>
 
