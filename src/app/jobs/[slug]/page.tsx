@@ -192,6 +192,21 @@ export default function JobDetail() {
               ))}
             </motion.div>
 
+            {/* Updated "Found on RemoteJobBay" Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-gradient-to-r from-teal-100/80 to-indigo-100/80 backdrop-blur-md p-6 rounded-xl shadow-md mb-8 text-center"
+            >
+              <h2 className="text-xl font-bold text-teal-800 font-poppins mb-3 flex items-center justify-center gap-2">
+                <FaBriefcase className="text-teal-600" /> Found This Job on RemoteJobBay?
+              </h2>
+              <p className="text-gray-700 text-base">
+                Let the employer know you discovered this opportunity on <strong>RemoteJobBay</strong>! Mentioning us in your application helps us connect top talent like you with amazing remote jobs.
+              </p>
+            </motion.div>
+
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
               <button
                 onClick={toggleBookmark}

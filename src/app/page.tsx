@@ -106,19 +106,28 @@ export default function Home() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="max-w-7xl mx-auto p-4 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
     >
-      {/* Hero */}
+      {/* Updated Hero Section */}
       <motion.div
-        className="text-center mb-6 bg-gradient-to-r from-teal-200 to-indigo-300 py-8 px-4 rounded-2xl shadow-lg border border-teal-200"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1, duration: 0.7, ease: 'easeOut' }}
+        className="text-center mb-8 bg-gradient-to-br from-teal-600 to-indigo-700 py-10 px-6 rounded-2xl shadow-xl border border-teal-300/30 backdrop-blur-md"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
       >
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-md leading-relaxed">
-          🌐💼 Fully Remote Jobs! ✨
-        </h1>
-        <p className="text-base sm:text-lg text-teal-50 mt-2 font-medium leading-relaxed">
-          Work from any Country: Mexico, Indonesia, Kenya, or beyond!
-        </p>
+        <motion.h1
+          className="text-3xl sm:text-4xl font-bold text-white font-poppins tracking-tight drop-shadow-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          Discover Your Dream Remote Job 🌍
+        </motion.h1>
+        <motion.p
+          className="text-lg sm:text-xl text-teal-100 mt-3 font-medium font-poppins leading-relaxed max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+Your location doesn’t matter. Your skills do. Find remote opportunities open to all countries.        </motion.p>
       </motion.div>
 
       {/* Email Subscription */}
