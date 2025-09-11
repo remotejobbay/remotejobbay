@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog, FaBug } from 'react-icons/fa';
 import { Job } from '@/types';
-import EmailSubscription from '@/components/EmailSubscription';
 import { useUser } from '@/context/UserContext';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import JobCard from '@/components/JobCard';
@@ -106,55 +105,109 @@ export default function Home() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="max-w-7xl mx-auto p-4 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
     >
-      {/* Updated Hero Section */}
+      {/* Integrated Hero Section with Email Subscription */}
       <motion.div
-        className="text-center mb-8 bg-gradient-to-br from-teal-600 to-indigo-700 py-10 px-6 rounded-2xl shadow-xl border border-teal-300/30 backdrop-blur-md"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20"
       >
-        <motion.h1
-          className="text-3xl sm:text-4xl font-bold text-white font-poppins tracking-tight drop-shadow-lg"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          Discover Your Dream Remote Job 🌍
-        </motion.h1>
-        <motion.p
-          className="text-lg sm:text-xl text-teal-100 mt-3 font-medium font-poppins leading-relaxed max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-Your location doesn’t matter. Your skills do. Find remote opportunities open to all countries.        </motion.p>
-      </motion.div>
+        <div className="grid gap-10 row-gap-8 lg:grid-cols-2">
+          {/* Left Column: Text and Subscription */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="flex flex-col justify-center"
+          >
+            <div className="max-w-xl mb-6">
+              <div>
+                <p className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-teal-900 uppercase rounded-full bg-teal-200">
+                  100% REMOTE
+                </p>
+              </div>
+              <h2 className="max-w-lg mb-6 font-sans text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none font-poppins">
+                Discover Your Dream Remote Job<br className="hidden md:block" />
+                <span className="inline-block text-teal-600">with RemoteJobBay</span>
+              </h2>
+              <p className="text-base text-gray-700 md:text-lg">
+Your location doesn’t matter. Your skills do. Find remote opportunities open to all countries.
+              </p>
+            </div>
+            {/* Email Subscription Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg border border-teal-200/70 max-w-md"
+            >
+              <h3 className="text-lg font-semibold text-teal-800 mb-4">
+Get Exclusive Remote Job Alerts</h3>
+              <form className="flex flex-col sm:flex-row gap-4">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md text-base text-gray-800"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-6 py-2 rounded-xl shadow-md transition-colors duration-200"
+                >
+                  Subscribe
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
 
-      {/* Email Subscription */}
-      <section className="mb-6 max-w-2xl mx-auto w-full">
-        <motion.div
-          className="bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-xl border border-yellow-200/70"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <EmailSubscription />
-        </motion.div>
-      </section>
+          {/* Right Column: Decorative SVGs */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="relative flex items-center justify-center"
+          >
+            <svg
+              className="absolute w-full text-teal-300"
+              fill="currentColor"
+              viewBox="0 0 600 392"
+            >
+              <rect x="0" y="211" width="75" height="181" rx="8"></rect>
+              <rect x="525" y="260" width="75" height="132" rx="8"></rect>
+              <rect x="105" y="83" width="75" height="309" rx="8"></rect>
+              <rect x="210" y="155" width="75" height="237" rx="8"></rect>
+              <rect x="420" y="129" width="75" height="263" rx="8"></rect>
+              <rect x="315" y="0" width="75" height="392" rx="8"></rect>
+            </svg>
+            <svg
+              className="relative w-full text-indigo-300"
+              fill="currentColor"
+              viewBox="0 0 600 392"
+            >
+              <rect x="0" y="311" width="75" height="81" rx="8"></rect>
+              <rect x="525" y="351" width="75" height="41" rx="8"></rect>
+              <rect x="105" y="176" width="75" height="216" rx="8"></rect>
+              <rect x="210" y="237" width="75" height="155" rx="8"></rect>
+              <rect x="420" y="205" width="75" height="187" rx="8"></rect>
+              <rect x="315" y="83" width="75" height="309" rx="8"></rect>
+            </svg>
+          </motion.div>
+        </div>
+      </motion.div>
 
       {/* Search */}
       <motion.div
         className="mb-6 flex flex-col sm:flex-row gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-indigo-200/70"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
       >
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search by title, company, category, or location..."
             value={inputTerm}
-            onChange={e => setInputTerm(e.target.value)}
+            onChange={(e) => setInputTerm(e.target.value)}
             className="px-4 py-2 border border-gray-200 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md text-base leading-relaxed placeholder-gray-500 text-gray-800 transition-all duration-200"
             aria-label="Search jobs by title, company, category, or location"
           />
@@ -186,7 +239,7 @@ Your location doesn’t matter. Your skills do. Find remote opportunities open t
         className="mb-6 p-2 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-indigo-100/50 overflow-x-auto"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
       >
         <div className="flex gap-2 py-2 px-2 flex-wrap justify-center" style={{ minHeight: '3rem' }}>
           {categories.map(({ name, icon: Icon }) => (
@@ -258,7 +311,7 @@ Your location doesn’t matter. Your skills do. Find remote opportunities open t
               Loading jobs...
             </motion.div>
           ) : paginatedJobs.length > 0 ? (
-            paginatedJobs.map(job => (
+            paginatedJobs.map((job) => (
               <motion.div
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -291,7 +344,7 @@ Your location doesn’t matter. Your skills do. Find remote opportunities open t
       {totalPages > 1 && (
         <div className="flex justify-center items-center space-x-2 mt-6">
           <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
             className={`rounded-full p-1 px-3 text-sm font-medium transition-all duration-200 shadow-md ${
               currentPage === 1
@@ -317,7 +370,7 @@ Your location doesn’t matter. Your skills do. Find remote opportunities open t
             </button>
           ))}
           <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             className={`rounded-full p-1 px-3 text-sm font-medium transition-all duration-200 shadow-md ${
               currentPage === totalPages

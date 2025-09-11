@@ -30,7 +30,7 @@ export default function Header() {
     if (user) {
       router.push('/post');
     } else {
-      router.push('/login');
+      router.push('/auth'); // Redirects to unified auth page
     }
   };
 
@@ -68,16 +68,10 @@ export default function Header() {
           ) : (
             <>
               <Link
-                href="/login"
+                href="/auth"
                 className="text-xs font-medium text-gray-600 hover:text-gray-800 font-poppins transition-colors duration-300 tracking-wide"
               >
                 Login
-              </Link>
-              <Link
-                href="/signup"
-                className="text-xs font-medium text-gray-600 hover:text-gray-800 font-poppins transition-colors duration-300 tracking-wide"
-              >
-                Create Account
               </Link>
             </>
           )}
