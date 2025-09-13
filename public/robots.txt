@@ -7,3 +7,9 @@ Host: https://remotejobbay.com
 
 # Sitemaps
 Sitemap: https://remotejobbay.com/sitemap.xml
+
+User-agent: *
+Disallow: /payment
+Disallow: /signup
+Disallow: /login
+Disallow: /thank-you

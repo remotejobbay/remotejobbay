@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
 import Link from 'next/link';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+
+// Note: Removed FaBars and FaTimes since we're using custom hamburger CSS
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function MobileMenu() {
 
   const handlePostJobClick = () => {
     setIsOpen(false);
-    router.push(user ? '/post' : '/login');
+    router.push(user ? '/post' : '/auth');
   };
 
   const handleLogout = async () => {
@@ -34,13 +35,48 @@ export default function MobileMenu() {
 
   return (
     <div className="relative sm:hidden">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="text-white p-3 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
-        aria-label="Toggle menu"
-      >
-        {isOpen ? <FaTimes className="w-6 h-6" /> : <FaBars className="w-6 h-6" />}
-      </button>
+      <div className="burgers">
+        <label className="burger burger1" htmlFor="burger1">
+          <input
+            id="burger1"
+            type="checkbox"
+            className="hidden"
+            checked={isOpen}
+            onChange={() => setIsOpen(!isOpen)}
+          />
+          <span></span>
+        </label>
+        <label className="burger burger2" htmlFor="burger2">
+          <input
+            id="burger2"
+            type="checkbox"
+            className="hidden"
+            checked={isOpen}
+            onChange={() => setIsOpen(!isOpen)}
+          />
+          <span></span>
+        </label>
+        <label className="burger burger3" htmlFor="burger3">
+          <input
+            id="burger3"
+            type="checkbox"
+            className="hidden"
+            checked={isOpen}
+            onChange={() => setIsOpen(!isOpen)}
+          />
+          <span></span>
+        </label>
+        <label className="burger burger4" htmlFor="burger4">
+          <input
+            id="burger4"
+            type="checkbox"
+            className="hidden"
+            checked={isOpen}
+            onChange={() => setIsOpen(!isOpen)}
+          />
+          <span></span>
+        </label>
+      </div>
 
       {isOpen && (
         <div
@@ -63,8 +99,7 @@ export default function MobileMenu() {
               </>
             ) : (
               <>
-                <Link href="/login" onClick={() => setIsOpen(false)} className="hover:underline">Login</Link>
-                <Link href="/signup" onClick={() => setIsOpen(false)} className="hover:underline">Create Account</Link>
+                <Link href="/auth" onClick={() => setIsOpen(false)} className="hover:underline">Login</Link>
               </>
             )}
 

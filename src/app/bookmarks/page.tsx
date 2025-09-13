@@ -7,6 +7,13 @@ import Link from 'next/link';
 import { Job } from '@/types';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import { FaGlobe } from 'react-icons/fa6';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client (move to a separate config file in production)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
 
 export default function BookmarksPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -17,20 +24,33 @@ export default function BookmarksPage() {
   useEffect(() => {
     if (!user) {
       alert('You must be logged in to view bookmarks.');
-      router.push('/login');
+      router.push('/auth'); // Updated to /auth as per your new page
     }
   }, [user, router]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/jobs')
-      .then((res) => res.json())
-      .then((data) => setJobs(data))
-      .catch((err) => console.error('Error fetching jobs:', err));
+    const fetchBookmarks = async () => {
+      try {
+        // Fetch jobs from Supabase (adjust table name if different)
+        const { data, error } = await supabase
+          .from('jobs')
+          .select('*'); // Add filters if needed (e.g., public data or user-specific)
 
-    const saved = localStorage.getItem('bookmarkedJobs');
-    if (saved) {
-      setBookmarked(JSON.parse(saved));
-    }
+        if (error) throw error;
+
+        setJobs(data || []);
+
+        // Load bookmarked jobs from localStorage
+        const saved = localStorage.getItem('bookmarkedJobs');
+        if (saved) {
+          setBookmarked(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error('Error fetching bookmarks:', err);
+      }
+    };
+
+    fetchBookmarks();
   }, []);
 
   const bookmarkedJobs = jobs.filter((job) =>
