@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         destination: "https://www.remotejobbay.com/:path*",
         permanent: true,
       },
+      {
+        source: "/login",
+        destination: "/auth",
+        permanent: true, // 301 redirect for /login → /auth
+      },
     ];
   },
 };
