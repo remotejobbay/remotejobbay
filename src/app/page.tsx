@@ -103,14 +103,14 @@ export default function Home() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="max-w-7xl mx-auto p-4 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
+      className="max-w-7xl mx-auto p-2 sm:p-4 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
     >
       {/* Integrated Hero Section with Email Subscription */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20"
+        className="px-4 pt-4 pb-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:pt-20 lg:pb-20"
       >
         <div className="grid gap-10 row-gap-8 lg:grid-cols-2">
           {/* Left Column: Text and Subscription */}
@@ -329,7 +329,7 @@ Get Exclusive Remote Job Alerts</h3>
             ))
           ) : (
             <motion.p
-              className="text-gray-600 text-center text-lg font-medium"
+              className="text-gray-700 text-center text-lg font-medium"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
