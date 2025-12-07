@@ -3,13 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://remotejobbay.com
+Host: https://www.remotejobbay.com
 
 # Sitemaps
-Sitemap: https://remotejobbay.com/sitemap.xml
-
-User-agent: *
-Disallow: /payment
-Disallow: /signup
-Disallow: /login
-Disallow: /thank-you
+Sitemap: https://www.remotejobbay.com/sitemap.xml
