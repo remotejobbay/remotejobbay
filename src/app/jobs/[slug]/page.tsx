@@ -90,10 +90,12 @@ export default function JobDetail() {
             sourceTable = 'jobs';
           } else {
             // 2. Fallback: Check 'potential_jobs' table
+            // ✅ CHANGE: Added .eq('status', 'approved') filter
             const { data: potentialData } = await supabase
               .from('potential_jobs')
               .select('*')
               .eq('id', slug)
+              .eq('status', 'approved') 
               .maybeSingle();
 
             if (potentialData) {
@@ -134,13 +136,19 @@ export default function JobDetail() {
         }
 
         // --- FETCH SIMILAR JOBS ---
-        // Query the SAME table to ensure column compatibility
-        const { data: relatedRaw } = await supabase
+        // ✅ CHANGE: Built a query object to conditionally filter by status
+        let similarQuery = supabase
           .from(sourceTable) 
           .select('*')
           .neq('id', foundJob.id)
-          .eq('category', foundJob.category)
-          .limit(4);
+          .eq('category', foundJob.category);
+
+        // If pulling from potential_jobs, ONLY show approved ones
+        if (sourceTable === 'potential_jobs') {
+            similarQuery = similarQuery.eq('status', 'approved');
+        }
+
+        const { data: relatedRaw } = await similarQuery.limit(4);
 
         if (relatedRaw) {
           const normalizedSimilar = relatedRaw
@@ -193,8 +201,8 @@ export default function JobDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center">
-             <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mb-4"></div>
-             <p className="text-gray-500 font-medium">Loading job details...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mb-4"></div>
+              <p className="text-gray-500 font-medium">Loading job details...</p>
         </div>
       </div>
     );

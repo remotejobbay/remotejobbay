@@ -4,14 +4,35 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+import { 
+  FaHome, 
+  FaInfoCircle, 
+  FaSignInAlt, 
+  FaSignOutAlt, 
+  FaBriefcase, 
+  FaUserCircle,
+  FaTimes,
+  FaBars
+} from 'react-icons/fa';
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
   const router = useRouter();
   
-  // 1. Move ref to the container to handle clicks on the button AND the menu correctly
+  // We don't need the click outside logic as much for a full-screen menu,
+  // but it's good practice to keep the ref for accessibility/focus management.
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll when menu is open so the background doesn't scroll
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
 
   const handlePostJobClick = () => {
     setIsOpen(false);
@@ -23,83 +44,101 @@ export default function MobileMenu() {
     location.reload();
   };
 
-  // 2. Click outside logic
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // If the menu is open, and the click is NOT inside our container
-      if (
-        isOpen && 
-        containerRef.current && 
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]); // Added isOpen dependency to keep it clean
-
   return (
-    <div className="relative sm:hidden" ref={containerRef}>
-      {/* 3. CLEANED UP: Only using ONE burger style. 
-          If you preferred the animation of burger3, change the class below to "burger burger3" 
-      */}
-      <label className="burger burger1" htmlFor="mobile-toggle">
-        <input
-          id="mobile-toggle"
-          type="checkbox"
-          className="hidden"
-          checked={isOpen}
-          onChange={() => setIsOpen(!isOpen)}
-        />
-        <span></span>
-      </label>
+    <div className="sm:hidden" ref={containerRef}>
+      {/* 1. THE TRIGGER BUTTON (Big and Easy to Tap) */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 -mr-2 text-blue-800 hover:bg-blue-50 rounded-full transition-colors focus:outline-none"
+        aria-label="Toggle Menu"
+      >
+        {/* Swapping Icon based on state */}
+        {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+      </button>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 mt-3 w-64 bg-blue-50 rounded-2xl shadow-2xl border border-blue-100 z-50 animate-fade-in origin-top-right">
-          <nav className="flex flex-col px-5 py-4 text-sm text-blue-900 font-medium space-y-3">
-            <Link href="/" onClick={() => setIsOpen(false)} className="hover:text-blue-600 transition">
+      {/* 2. THE FULL SCREEN OVERLAY */}
+      {/* This covers the whole screen so users can't miss */}
+      <div 
+        className={`fixed inset-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out transform ${
+          isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
+        }`}
+        style={{ top: '60px' }} // Adjust this value to match your Navbar height
+      >
+        <div className="flex flex-col h-full p-6 overflow-y-auto pb-20">
+          
+          {/* USER PROFILE CARD (If logged in) */}
+          {user && (
+            <div className="bg-blue-50 p-5 rounded-2xl mb-8 border border-blue-100 flex items-center gap-4 shadow-sm">
+              <div className="bg-blue-200 text-blue-700 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
+                {user.email?.charAt(0).toUpperCase()}
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider">Signed in as</p>
+                <p className="text-blue-900 font-bold truncate text-sm">{user.email}</p>
+              </div>
+            </div>
+          )}
+
+          {/* NAVIGATION LINKS - Styled as Big Rows */}
+          <nav className="flex flex-col space-y-3">
+            
+            <Link 
+              href="/" 
+              onClick={() => setIsOpen(false)}
+              className="group flex items-center gap-4 p-4 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all active:scale-98 border border-transparent hover:border-blue-100"
+            >
+              <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
+                <FaHome className="text-gray-500 group-hover:text-blue-500" />
+              </div>
               Home
             </Link>
-            <Link href="/about" onClick={() => setIsOpen(false)} className="hover:text-blue-600 transition">
-              About
+
+            <Link 
+              href="/about" 
+              onClick={() => setIsOpen(false)}
+              className="group flex items-center gap-4 p-4 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all active:scale-98 border border-transparent hover:border-blue-100"
+            >
+              <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
+                <FaInfoCircle className="text-gray-500 group-hover:text-blue-500" />
+              </div>
+              About Us
             </Link>
 
-            {user ? (
-              <>
-                <div className="border-t border-blue-200 my-2 pt-2">
-                  <p className="text-xs text-blue-400 mb-2 truncate">
-                    Signed in as: <br />
-                    <span className="font-semibold text-blue-600">{user.email}</span>
-                  </p>
-                  <button
-                    onClick={handleLogout}
-                    className="text-left text-red-500 hover:text-red-700 hover:underline text-sm w-full"
-                  >
-                    Log out
-                  </button>
+            {!user && (
+              <Link 
+                href="/auth" 
+                onClick={() => setIsOpen(false)}
+                className="group flex items-center gap-4 p-4 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all active:scale-98 border border-transparent hover:border-blue-100"
+              >
+                <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
+                  <FaSignInAlt className="text-gray-500 group-hover:text-blue-500" />
                 </div>
-              </>
-            ) : (
-              <Link href="/auth" onClick={() => setIsOpen(false)} className="hover:text-blue-600 transition">
-                Login
+                Login / Sign Up
               </Link>
             )}
 
-            <button
-              onClick={handlePostJobClick}
-              className="mt-2 w-full bg-blue-600 text-white text-center py-2.5 rounded-xl font-semibold shadow-md hover:bg-blue-700 transition transform active:scale-95"
-            >
-              Post a Job
-            </button>
-          </nav>
+            {/* ACTION BUTTONS */}
+            <div className="mt-6 pt-6 border-t border-gray-100 flex flex-col gap-4">
+              <button
+                onClick={handlePostJobClick}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              >
+                <FaBriefcase /> Post a Job
+              </button>
 
-          <div className="text-center text-[10px] text-blue-400 py-2 border-t border-blue-100 bg-blue-50/50 rounded-b-2xl">
-            © {new Date().getFullYear()} RemoteJobBay
-          </div>
+              {user && (
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-50 text-red-500 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform border border-red-100 hover:bg-red-100"
+                >
+                  <FaSignOutAlt /> Log Out
+                </button>
+              )}
+            </div>
+
+          </nav>
         </div>
-      )}
+      </div>
     </div>
   );
 }
