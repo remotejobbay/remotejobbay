@@ -5,15 +5,21 @@ import {
   FaRegStar,
   FaStar,
   FaMapMarkerAlt,
-  FaClock,
-  FaDollarSign,
-  FaBuilding,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaTags,
   FaExternalLinkAlt,
-  FaBriefcase,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+
+// Fix for TypeScript gtag error
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface Props {
   job: Job;
@@ -21,6 +27,16 @@ interface Props {
   toggleBookmark?: (id: string | number) => void;
   showBookmark?: boolean;
 }
+
+// --- URL HELPER ---
+const generateJobUrl = (title: string, id: string | number) => {
+  if (!title) return `/jobs/${id}`;
+  const cleanTitle = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  return `/jobs/${cleanTitle}-${id}`;
+};
 
 export default function JobCard({
   job,
@@ -33,14 +49,19 @@ export default function JobCard({
 
   /* ─────────── Helpers ─────────── */
   const postedLabel = (d: string) => {
-    const diff = Math.floor(
-      (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diff === 0) return 'Today';
-    if (diff === 1) return '1 day ago';
-    if (diff < 7) return `${diff} days ago`;
-    if (diff < 30) return `${Math.floor(diff / 7)}w ago`;
-    return `${Math.floor(diff / 30)}mo ago`;
+    try {
+      const diff = Math.floor(
+        (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (isNaN(diff)) return 'Recently';
+      if (diff <= 0) return 'Today';
+      if (diff === 1) return '1 day ago';
+      if (diff < 7) return `${diff} days ago`;
+      if (diff < 30) return `${Math.floor(diff / 7)}w ago`;
+      return `${Math.floor(diff / 30)}mo ago`;
+    } catch (e) {
+      return 'Recently';
+    }
   };
 
   const isNewJob = (d: string) => {
@@ -50,7 +71,7 @@ export default function JobCard({
     return diff <= 3;
   };
 
-  const logoOk = job.logo && !logoError && job.logo.trim() !== '';
+  const shouldShowLogo = job.logo && !logoError && job.logo.trim() !== '';
 
   const trackClick = () => {
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -62,131 +83,111 @@ export default function JobCard({
     }
   };
 
+  const displaySalary = () => {
+    if (!job.salary || job.salary === '0') return 'Competitive';
+    if (typeof job.salary === 'string' && isNaN(Number(job.salary))) {
+        return job.salary;
+    }
+    const amount = Number(job.salary).toLocaleString();
+    return job.salaryType === 'hourly' ? `$${amount}/hr` : `$${amount}/yr`;
+  };
+
+  const jobUrl = generateJobUrl(job.title, job.id);
+
   /* ─────────── Render ─────────── */
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      className="group relative bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-teal-200 transition-all duration-300"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="group relative bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-md hover:shadow-lg border border-teal-50 hover:border-teal-200 transition-all duration-300"
     >
-      {/* "New" Badge - Floated absolutely */}
+      {/* "New" Badge */}
       {isNewJob(job.datePosted) && (
         <div className="absolute -top-3 -left-2 z-10">
-          <span className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-full shadow-md border border-white">
+          <span className="bg-gradient-to-r from-teal-500 to-indigo-500 text-white text-[10px] uppercase tracking-wider font-bold px-3 py-1 rounded-full shadow-md border border-white">
             New
           </span>
         </div>
       )}
 
-      {/* Main Layout: Flex Col on Mobile, Flex Row on Desktop */}
-      <div className="flex flex-col md:flex-row gap-5">
+      <div className="flex flex-col sm:flex-row gap-6">
         
-        {/* 1. Header Section: Logo & Basic Info */}
-        <div className="flex flex-row md:flex-col items-start gap-4 flex-shrink-0">
-          <div className="relative">
-            {logoOk ? (
-              <img
-                src={job.logo}
-                alt={`${job.company} logo`}
-                onError={() => setLogoError(true)}
-                className="h-12 w-12 md:h-14 md:w-14 object-contain rounded-lg border border-gray-100 bg-white shadow-sm p-0.5"
-              />
-            ) : (
-              <div className="h-12 w-12 md:h-14 md:w-14 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
-                <FaBuilding className="text-gray-300 text-xl" />
-              </div>
-            )}
-          </div>
-          
-          {/* Mobile Only: Company Name next to logo (saves vertical space) */}
-          <div className="md:hidden flex-1 min-w-0 pt-1">
-             <p className="text-sm font-semibold text-gray-500 truncate">
-                {job.company}
-             </p>
-             <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                {postedLabel(job.datePosted)}
-             </p>
-          </div>
+        {/* 1. Logo Match */}
+        <div className="flex-shrink-0 flex items-start">
+          {shouldShowLogo ? (
+            <img
+              src={job.logo}
+              alt={job.company}
+              onError={() => setLogoError(true)}
+              className="w-16 h-16 object-contain rounded-full border-2 border-teal-100 shadow-md bg-white transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-16 h-16 flex items-center justify-center bg-teal-100 rounded-full text-teal-600 font-bold text-2xl shadow-md border-2 border-teal-100 transition-transform duration-300 group-hover:scale-105">
+              {job.company.charAt(0)}
+            </div>
+          )}
         </div>
 
-        {/* 2. Content Body: Grows to fill space */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between gap-3">
-          <div>
-            <div className="flex justify-between items-start gap-2">
-              <Link
-                href={`/jobs/${job.slug}`}
-                onClick={trackClick}
-                className="group/link focus:outline-none"
-              >
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 leading-snug group-hover/link:text-teal-600 transition-colors">
-                  {job.title}
-                </h3>
-              </Link>
-            </div>
+        {/* 2. Content Body (Matched to JobDetail styling) */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <Link href={jobUrl} onClick={trackClick} className="block group/link">
+            <h3 className="text-xl md:text-2xl font-extrabold text-teal-800 font-poppins drop-shadow-sm group-hover/link:text-indigo-600 transition-colors leading-tight mb-1">
+              {job.title}
+            </h3>
+          </Link>
+          
+          <p className="text-base text-indigo-600 font-semibold font-poppins mb-3">
+            {job.company}
+          </p>
 
-            {/* Desktop: Company info sits here */}
-            <div className="hidden md:flex items-center gap-2 mt-1.5 text-sm text-gray-500">
-              <span className="font-semibold text-gray-700">{job.company}</span>
-              <span>•</span>
-              <span className="text-gray-400">{postedLabel(job.datePosted)}</span>
-            </div>
-          </div>
-
-          {/* Metadata Badges */}
-          <div className="flex flex-wrap items-center gap-2 mt-1">
+          <div className="flex flex-wrap gap-2 text-xs font-medium text-gray-700">
             {job.location && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600 border border-gray-100">
-                <FaMapMarkerAlt className="text-gray-400" />
+              <span className="flex items-center gap-1.5 bg-teal-100/80 px-3 py-1 rounded-full border border-teal-100">
+                <FaMapMarkerAlt className="text-teal-500" /> 
                 <span className="truncate max-w-[150px]">{job.location}</span>
-              </div>
+              </span>
             )}
-            
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
-              <FaClock className="text-purple-400" />
-              {job.type}
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-              <FaDollarSign className="text-green-500" />
-              {job.salary && Number(job.salary) > 0
-                ? job.salaryType === 'hourly'
-                  ? `${Number(job.salary).toLocaleString()}/hr`
-                  : `${Number(job.salary).toLocaleString()}/yr`
-                : 'Competitive'}
-            </div>
+            <span className="flex items-center gap-1.5 bg-indigo-100/80 px-3 py-1 rounded-full border border-indigo-100">
+              <FaMoneyBillWave className="text-indigo-500" /> {displaySalary()}
+            </span>
+            <span className="flex items-center gap-1.5 bg-orange-100/80 px-3 py-1 rounded-full border border-orange-100">
+              <FaCalendarAlt className="text-orange-500" /> {postedLabel(job.datePosted)}
+            </span>
+            <span className="flex items-center gap-1.5 bg-purple-100/80 px-3 py-1 rounded-full border border-purple-100 capitalize">
+              <FaTags className="text-purple-500" /> {job.type}
+            </span>
           </div>
         </div>
 
-        {/* 3. Actions Column: Buttons */}
-        <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-3 md:pl-4 md:border-l md:border-gray-50 mt-2 md:mt-0">
+        {/* 3. Actions Column */}
+        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 mt-4 sm:mt-0 sm:pl-5 sm:border-l border-gray-100">
           
-          {/* Bookmark Button */}
           {showBookmark && toggleBookmark && (
             <button
               onClick={(e) => {
                 e.preventDefault();
                 toggleBookmark(job.id);
               }}
-              className={`p-2.5 rounded-xl border transition-all duration-200 hover:shadow-md ${
+              className={`p-2.5 rounded-lg border transition-all duration-200 shadow-sm ${
                 isBookmarked
-                  ? 'bg-amber-50 border-amber-200 text-amber-500'
-                  : 'bg-white border-gray-200 text-gray-400 hover:text-amber-500 hover:border-amber-200'
+                  ? 'bg-yellow-100/80 border-yellow-200 text-yellow-600'
+                  : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 hover:border-yellow-200'
               }`}
-              title={isBookmarked ? 'Remove bookmark' : 'Save job'}
+              title={isBookmarked ? "Remove Bookmark" : "Save Job"}
             >
-              {isBookmarked ? <FaStar /> : <FaRegStar />}
+              {isBookmarked ? <FaStar className="text-lg" /> : <FaRegStar className="text-lg" />}
             </button>
           )}
 
-          {/* View Job Button - Full width on mobile */}
           <Link
-            href={`/jobs/${job.slug}`}
+            href={jobUrl}
             onClick={trackClick}
-            className="flex-1 md:flex-none w-full md:w-auto text-center bg-gray-900 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none w-full sm:w-auto text-center bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out shadow-md flex items-center justify-center gap-2"
           >
             <span>Details</span>
-            <FaExternalLinkAlt className="text-xs opacity-70" />
+            <FaExternalLinkAlt className="text-xs" />
           </Link>
         </div>
       </div>

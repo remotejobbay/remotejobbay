@@ -1,18 +1,17 @@
 import os
 import feedparser
 import re
-import time
+from datetime import datetime
 from supabase import create_client, Client
 from dotenv import load_dotenv, find_dotenv
-from postgrest.exceptions import APIError
 from bs4 import BeautifulSoup 
 
 # --- 1. SETUP & AUTH ---
+# This automatically finds your .env file
 env_file = find_dotenv('.env.local') or find_dotenv('.env')
 print(f"📂 Loading environment variables from: {env_file}")
 load_dotenv(env_file)
 
-# Load Keys
 SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
 
@@ -23,12 +22,16 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 print("✅ Supabase client initialized.")
 
-# --- 2. CONFIG ---
+# --- 2. CONFIG: THE MEGA LIST ---
 RSS_FEEDS = [
-    {"url": "https://weworkremotely.com/remote-jobs.rss", "source": "WeWorkRemotely"},
-    {"url": "https://remoteok.com/rss", "source": "RemoteOK"},
-    {"url": "https://remotive.com/remote-jobs/feed", "source": "Remotive"},
-    {"url": "https://www.workingnomads.com/jobs?rss=1", "source": "WorkingNomads"},
+    {"url": "https://weworkremotely.com/remote-jobs.rss", "source": "WeWorkRemotely", "domain": "weworkremotely.com"},
+    {"url": "https://remoteok.com/rss", "source": "RemoteOK", "domain": "remoteok.com"},
+    {"url": "https://remotive.com/remote-jobs/feed", "source": "Remotive", "domain": "remotive.com"},
+    {"url": "https://www.workingnomads.com/jobs?rss=1", "source": "WorkingNomads", "domain": "workingnomads.com"},
+    {"url": "https://jobspresso.co/feed/", "source": "Jobspresso", "domain": "jobspresso.co"},
+    {"url": "https://nodesk.co/feed", "source": "NoDesk", "domain": "nodesk.co"},
+    {"url": "https://dailyremote.com/feed", "source": "DailyRemote", "domain": "dailyremote.com"},
+    {"url": "https://remote.co/feed/", "source": "Remote.co", "domain": "remote.co"},
 ]
 
 # --- 3. HELPER FUNCTIONS ---
@@ -36,16 +39,18 @@ RSS_FEEDS = [
 def clean_html(html_content):
     if not html_content: return "No description"
     if not isinstance(html_content, str): return str(html_content)
-    soup = BeautifulSoup(html_content, "html.parser")
-    return soup.get_text(separator=" ")[:600].strip()
+    try:
+        soup = BeautifulSoup(html_content, "html.parser")
+        return soup.get_text(separator=" ")[:5000].strip()
+    except:
+        return str(html_content)[:5000]
 
-def get_logo_url(company_name):
-    if not company_name or company_name.lower() == "unknown":
-        return "https://via.placeholder.com/150"
-    clean_name = re.sub(r'[^a-zA-Z0-9]', '', company_name).lower()
-    if not clean_name:
-        return "https://via.placeholder.com/150"
-    return f"https://logos.hunter.io/{clean_name}.com"
+def get_logo_url(company_name, source_domain):
+    if company_name and company_name.lower() != "unknown":
+        clean_name = re.sub(r'[^a-zA-Z0-9]', '', company_name).lower()
+        if clean_name:
+            return f"https://logos.hunter.io/{clean_name}.com"
+    return f"https://logos.hunter.io/{source_domain}"
 
 def get_category(title):
     title = title.lower()
@@ -57,39 +62,49 @@ def get_category(title):
 # --- 4. MAIN SCRAPER LOOP ---
 def process_feeds():
     print("\n" + "="*40)
-    print("🚀 VERSION: UNLIMITED PRODUCTION") 
-    print("   (Scraping ALL jobs from feeds)")
+    print("🚀 PRODUCTION SCRAPER") 
+    print("   (Jobs will be Hidden & Pending)")
     print("="*40 + "\n")
     
+    total_new_jobs = 0
+
     for feed_source in RSS_FEEDS:
         print(f"📥 Checking {feed_source['source']}...")
-        feed = feedparser.parse(feed_source['url'])
+        try:
+            feed = feedparser.parse(feed_source['url'])
+        except Exception as e:
+            print(f"   ❌ Failed to read feed: {e}")
+            continue
         
         total_entries = len(feed.entries)
         if total_entries == 0:
             print(f"   ⚠️ No entries found.")
             continue
             
-        print(f"   Found {total_entries} jobs. Processing...")
         new_count = 0
         skip_count = 0
 
-        # LOOP THROUGH ALL ENTRIES (No limit)
         for i, entry in enumerate(feed.entries): 
             try:
-                # Extract Data
                 title = getattr(entry, 'title', 'No Title')
                 link = getattr(entry, 'link', '')
                 external_id = getattr(entry, 'id', link)
-                company = getattr(entry, 'author', 'Unknown')
                 
                 # Check Duplicates
                 existing = supabase.table("potential_jobs").select("external_id").eq("external_id", external_id).execute()
                 
                 if existing.data:
                     skip_count += 1
-                    print(".", end="", flush=True) # Print dot for skipped
                     continue 
+
+                # Company Logic
+                company = getattr(entry, 'author', 'Unknown')
+                if company == "Unknown" and ":" in title:
+                    parts = title.split(":")
+                    if len(parts) > 1: company = parts[0].strip()
+
+                # Get description safely
+                desc = getattr(entry, 'summary', getattr(entry, 'content', [{'value': ''}])[0].get('value', ''))
 
                 # Prepare Data
                 job_data = {
@@ -97,25 +112,31 @@ def process_feeds():
                     "title": str(title),
                     "company": str(company),
                     "location": "Remote",
-                    "description": clean_html(getattr(entry, 'summary', '')),
+                    "description": clean_html(desc),
                     "salary_text": "Not Listed",   
                     "apply_url": str(link),
-                    "logo": get_logo_url(company),
+                    "logo": get_logo_url(company, feed_source['domain']),
                     "category": get_category(title),
                     "source_url": str(link),
                     "source": feed_source['source'],
-                    "status": "pending"
+                    
+                    # --- VETTING LOCKS ---
+                    "status": "pending",     # 1. Needs manual approval
+                    "post_to_site": False    # 2. Hidden from website
                 }
 
-                # Insert
                 supabase.table("potential_jobs").insert(job_data).execute()
                 new_count += 1
-                print(f"\n      ✅ [{i+1}/{total_entries}] Saved: {company}")
+                total_new_jobs += 1
+                print(f"   ✅ Saved (Hidden): {title[:30]}...")
 
             except Exception as e:
-                print(f"\n      ❌ Error: {e}")
+                # print(f"   ❌ Error: {e}") 
+                pass 
 
-        print(f"\n   ✅ Added: {new_count} | Skipped: {skip_count}\n")
+        print(f"   ✅ Added: {new_count} | Skipped: {skip_count}\n")
+
+    print(f"\n✨ DONE! Total new jobs in vetting queue: {total_new_jobs}")
 
 if __name__ == "__main__":
     process_feeds()

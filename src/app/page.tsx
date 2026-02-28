@@ -7,8 +7,7 @@ import {
   FaCalculator, FaBullhorn, FaPhone, FaHeadset, FaTasks, FaPen, 
   FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, 
   FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog, FaBug, 
-  FaBitcoin, FaHeartbeat, FaGamepad, FaCloud, FaUserTie,
-  FaBriefcase
+  FaBitcoin, FaHeartbeat, FaGamepad, FaCloud, FaUserTie 
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { useUser } from '@/context/UserContext';
@@ -47,94 +46,57 @@ const categories = [
   { name: 'Engineering Management', icon: FaUserCog },
 ];
 
-const jobTypes = ["All Types", "Full-time", "Contract", "Part-time", "Freelance", "Internship"];
-
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputTerm, setInputTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedJobType, setSelectedJobType] = useState('All Types');
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const { user } = useUser();
   const jobsPerPage = 25;
   const [currentPage, setCurrentPage] = useState(1);
   const jobListRef = useRef<HTMLDivElement>(null);
 
+  // --- 1. FETCH LOGIC (With Vetting & Data Mapping) ---
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true);
 
-      // 1. Fetch from both tables in parallel
-      const [manualResult, potentialResult] = await Promise.all([
-        supabase.from('jobs').select('*'), 
-        supabase.from('potential_jobs').select('*')
-      ]);
+      // Fetch strictly from 'jobs' table, ONLY where post_to_site is true
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('post_to_site', true) 
+        .order('created_at', { ascending: false });
 
-      if (manualResult.error) console.error('Error fetching manual:', manualResult.error.message);
-      if (potentialResult.error) console.error('Error fetching potential:', potentialResult.error.message);
+      // 🕵️ TRUTH SERUM: See exactly what Supabase handed back!
+      console.log("🕵️ RAW SUPABASE DATA:", data);
 
-      const rawManual = manualResult.data || [];
-      const rawPotential = potentialResult.data || [];
+      if (error) {
+        console.error('Error fetching jobs:', error.message);
+        setLoading(false);
+        return;
+      }
 
-      // DEBUG: Check console to see if data is actually arriving
-      console.log(`Fetched ${rawManual.length} manual jobs and ${rawPotential.length} scraped jobs.`);
-
-      // 2. Merge and Normalize Data
-      const combinedJobs = [...rawManual, ...rawPotential].map((job) => {
+      // Normalize Data: Translate database snake_case to frontend camelCase
+      const formattedJobs = (data || []).map((job) => ({
+        ...job,
+        id: String(job.id),
+        title: job.title || 'Untitled Position',
+        company: job.company || 'Unknown Company',
+        location: job.location || 'Remote',
         
-        // Resolve ID
-        const id = job.id || job.job_id;
+        // Translate the scraper columns so the website understands them:
+        applyUrl: job.apply_url || job.applyUrl || '#', 
+        datePosted: job.created_at || job.datePosted || new Date().toISOString(),
+        salary: job.salary_text || job.salary || 'Not Listed', 
+        
+        category: job.category || 'Other',
+        type: job.type || (job.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time')
+      }));
 
-        // Resolve Title
-        const title = job.title || job.job_title || 'Untitled Position';
-
-        // Resolve Company
-        const company = job.company || job.company_name || 'Unknown Company';
-
-        // Resolve Location
-        const location = job.location || job.job_location || 'Worldwide';
-
-        // Resolve Logo
-        const logo = job.logo || job.company_logo || job.logo_url || job.imageUrl;
-
-        // Resolve Type (Heuristics)
-        let resolvedType = job.job_type || job.type || job.jobType || 'Full-time';
-        if (!job.job_type && !job.type) {
-           const lowerTitle = (title || '').toLowerCase();
-           if (lowerTitle.includes('contract')) resolvedType = 'Contract';
-           else if (lowerTitle.includes('part-time') || lowerTitle.includes('part time')) resolvedType = 'Part-time';
-           else if (lowerTitle.includes('freelance')) resolvedType = 'Freelance';
-           else if (lowerTitle.includes('intern')) resolvedType = 'Internship';
-        }
-
-        return {
-          ...job, 
-          id: id,
-          title: title,
-          company: company,
-          location: location,
-          logo: logo,
-          // ✅ FIX: Allow empty URLs (fallback to #) so old jobs don't disappear
-          applyUrl: job.applyUrl || job.apply_url || '#', 
-          datePosted: job.datePosted || job.created_at || new Date().toISOString(),
-          salary: job.salary || job.salary_text, 
-          category: job.category || 'Other',
-          type: resolvedType 
-        };
-      });
-
-      // 3. Filter only entries that have an ID (removed the strict applyUrl check)
-      const validJobs = combinedJobs.filter(j => j.id);
-
-      // 4. Sort by Date
-      const sortedJobs = validJobs.sort((a, b) => 
-        new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime()
-      );
-
-      setJobs(sortedJobs as Job[]);
+      setJobs(formattedJobs as Job[]);
       setLoading(false);
     };
 
@@ -162,7 +124,7 @@ export default function Home() {
     setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
-  // Filter Logic
+  // --- Search Logic ---
   const filteredJobs = useMemo(() => {
     return jobs.filter(j => {
       const keywords = searchTerm.toLowerCase().split(/\s+/).filter(k => k);
@@ -172,25 +134,22 @@ export default function Home() {
         ${j.company} 
         ${j.location} 
         ${j.category} 
+        ${j.description || ''} 
         ${j.salary || ''}
-      `.toLowerCase(); 
+      `.toLowerCase();
 
       const matchSearch = searchTerm ? keywords.some(keyword => jobText.includes(keyword)) : true;
       const matchCategory = selectedCategory === 'All' || j.category === selectedCategory;
-      const matchType = selectedJobType === 'All Types' || j.type === selectedJobType;
       
-      return matchSearch && matchCategory && matchType;
+      return matchSearch && matchCategory;
     });
-  }, [jobs, searchTerm, selectedCategory, selectedJobType]);
+  }, [jobs, searchTerm, selectedCategory]);
 
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
-  
-  const paginatedJobs = useMemo(() => {
-    return filteredJobs.slice(
-      (currentPage - 1) * jobsPerPage,
-      currentPage * jobsPerPage,
-    );
-  }, [filteredJobs, currentPage, jobsPerPage]);
+  const paginatedJobs = filteredJobs.slice(
+    (currentPage - 1) * jobsPerPage,
+    currentPage * jobsPerPage,
+  );
 
   return (
     <motion.main
@@ -199,15 +158,15 @@ export default function Home() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="max-w-7xl mx-auto p-2 sm:p-4 min-h-[80vh] bg-gradient-to-br from-teal-50 via-purple-50 to-orange-50"
     >
-      {/* Hero Section */}
+      {/* --- HERO SECTION WITH SVGS & EMAIL FORM --- */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="px-4 pt-4 pb-10 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:pt-20 lg:pb-16"
+        className="px-4 pt-4 pb-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:pt-20 lg:pb-20"
       >
         <div className="grid gap-10 row-gap-8 lg:grid-cols-2">
-          {/* Left Column */}
+          {/* Left Column: Text and Subscription */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -228,6 +187,30 @@ export default function Home() {
                 Your location doesn’t matter. Your skills do. Find remote opportunities open to all countries.
               </p>
             </div>
+            {/* Email Subscription Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg border border-teal-200/70 max-w-md"
+            >
+              <h3 className="text-lg font-semibold text-teal-800 mb-4">
+                Get Exclusive Remote Job Alerts</h3>
+              <form className="flex flex-col sm:flex-row gap-4">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md text-base text-gray-800"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-6 py-2 rounded-xl shadow-md transition-colors duration-200"
+                >
+                  Subscribe
+                </button>
+              </form>
+            </motion.div>
           </motion.div>
 
           {/* Right Column: Decorative SVGs */}
@@ -237,7 +220,11 @@ export default function Home() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="relative flex items-center justify-center"
           >
-             <svg className="absolute w-full text-teal-300" fill="currentColor" viewBox="0 0 600 392">
+            <svg
+              className="absolute w-full text-teal-300"
+              fill="currentColor"
+              viewBox="0 0 600 392"
+            >
               <rect x="0" y="211" width="75" height="181" rx="8"></rect>
               <rect x="525" y="260" width="75" height="132" rx="8"></rect>
               <rect x="105" y="83" width="75" height="309" rx="8"></rect>
@@ -245,7 +232,11 @@ export default function Home() {
               <rect x="420" y="129" width="75" height="263" rx="8"></rect>
               <rect x="315" y="0" width="75" height="392" rx="8"></rect>
             </svg>
-            <svg className="relative w-full text-indigo-300" fill="currentColor" viewBox="0 0 600 392">
+            <svg
+              className="relative w-full text-indigo-300"
+              fill="currentColor"
+              viewBox="0 0 600 392"
+            >
               <rect x="0" y="311" width="75" height="81" rx="8"></rect>
               <rect x="525" y="351" width="75" height="41" rx="8"></rect>
               <rect x="105" y="176" width="75" height="216" rx="8"></rect>
@@ -257,38 +248,22 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* --- FILTER & SEARCH BAR --- */}
+      {/* --- SEARCH BAR --- */}
       <motion.div
-        className="mb-6 flex flex-col lg:flex-row gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-indigo-200/70"
+        className="mb-6 flex flex-col sm:flex-row gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-indigo-200/70"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.5 }}
       >
-        {/* Job Type Selector */}
-        <div className="flex-shrink-0 min-w-[150px]">
-          <select 
-            value={selectedJobType}
-            onChange={(e) => {
-                setSelectedJobType(e.target.value);
-                setCurrentPage(1); 
-            }}
-            className="w-full h-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-50 text-gray-700 font-medium cursor-pointer hover:bg-gray-100 transition-colors"
-          >
-            {jobTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Search Input */}
         <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Search keyword, skill, title..."
+            placeholder="Search keyword, skill, title, or company..."
             value={inputTerm}
             onChange={(e) => setInputTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="px-4 py-3 border border-gray-200 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-inner text-base leading-relaxed placeholder-gray-500 text-gray-800 transition-all duration-200"
+            className="px-4 py-2 border border-gray-200 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md text-base leading-relaxed placeholder-gray-500 text-gray-800 transition-all duration-200"
+            aria-label="Search jobs"
           />
           {inputTerm && (
             <button
@@ -297,146 +272,168 @@ export default function Home() {
                 setSearchTerm('');
                 setCurrentPage(1);
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-lg px-2"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-base"
+              aria-label="Clear search"
             >
               ✕
             </button>
           )}
         </div>
-
-        {/* Search Button */}
         <button
           onClick={handleSearch}
-          className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-8 py-3 rounded-xl shadow-lg font-semibold text-base transition-all duration-200"
+          className="bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white px-4 py-2 rounded-xl shadow-lg w-full sm:w-auto text-base leading-relaxed transition-all duration-200"
+          aria-label="Submit job search"
         >
           Search
         </button>
       </motion.div>
 
-      {/* Category Pills */}
+      {/* --- CATEGORY ICONS --- */}
       <motion.div
-        className="mb-8 p-2 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-indigo-100/50 overflow-x-auto"
+        className="mb-6 p-2 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-indigo-100/50 overflow-x-auto"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.5 }}
       >
-        <div className="flex gap-2 py-2 px-2 flex-wrap justify-center sm:justify-start lg:justify-center" style={{ minHeight: '3rem' }}>
+        <div className="flex gap-2 py-2 px-2 flex-wrap justify-center" style={{ minHeight: '3rem' }}>
           {categories.map(({ name, icon: Icon }) => (
             <motion.button
               key={name}
               onClick={() => {
                 setSelectedCategory(name);
                 setCurrentPage(1);
+                setTimeout(() => jobListRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
               }}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-300 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium flex items-center gap-1 transition-all duration-300 ${
                 selectedCategory === name
-                  ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md transform scale-105'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-teal-300 hover:text-teal-700'
+                  ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
               }`}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, rotate: 1 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={`Filter jobs by ${name} category`}
+              role="button"
             >
-              {Icon && <Icon className={selectedCategory === name ? "text-white" : "text-teal-500"} />}
+              {Icon && <Icon className="text-base" aria-hidden="true" />}
               {name}
             </motion.button>
           ))}
         </div>
+        <style jsx>{`
+          .overflow-x-auto::-webkit-scrollbar {
+            height: 0.5rem;
+          }
+          .overflow-x-auto::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
+            border-radius: 0.25rem;
+          }
+          .overflow-x-auto::-webkit-scrollbar-track {
+            background-color: #f3f4f6;
+          }
+        `}</style>
       </motion.div>
 
-      {/* Job List */}
+      {/* --- JOB LIST --- */}
       <div ref={jobListRef} className="space-y-4">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {loading ? (
             <motion.div
-              key="loader"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-20"
+              className="text-center text-gray-600 text-lg font-medium"
             >
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-teal-500 border-t-transparent mb-4"></div>
-              <p className="text-gray-600 font-medium">Curating the best remote jobs...</p>
+              <svg
+                className="animate-spin h-6 w-6 mx-auto text-teal-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"
+                />
+              </svg>
+              Loading jobs...
             </motion.div>
           ) : paginatedJobs.length > 0 ? (
-            <div className="grid gap-4"> 
-              {paginatedJobs.map((job) => (
-                <motion.div
-                  // ✅ FIX: Using unique key logic to prevent duplicate ID errors
-                  key={`${job.id}-${job.company}`} 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <JobCard
-                    job={job}
-                    bookmarked={bookmarked}
-                    toggleBookmark={toggleBookmark}
-                    showBookmark
-                  />
-                </motion.div>
-              ))}
-            </div>
+            paginatedJobs.map((job) => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <JobCard
+                  job={job}
+                  bookmarked={bookmarked}
+                  toggleBookmark={toggleBookmark}
+                  showBookmark
+                />
+              </motion.div>
+            ))
           ) : (
-            <motion.div
-              key="empty"
-              className="text-center py-20 bg-white/50 rounded-2xl border border-dashed border-gray-300"
+            <motion.p
+              className="text-gray-700 text-center text-lg font-medium"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              <FaBriefcase className="mx-auto text-4xl text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700">No jobs found</h3>
-              <p className="text-gray-500 mt-2">Try adjusting your search terms or filters.</p>
-              <button 
-                onClick={() => {
-                  setSearchTerm('');
-                  setInputTerm('');
-                  setSelectedCategory('All');
-                  setSelectedJobType('All Types');
-                }}
-                className="mt-4 text-teal-600 font-medium hover:underline"
-              >
-                Clear all filters
-              </button>
-            </motion.div>
+              No jobs found for this category or search. Try selecting "All" or subscribing for new job alerts!
+            </motion.p>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2 mt-8 pb-8">
+      {/* --- PAGINATION --- */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-6">
           <button
-            onClick={() => {
-                setCurrentPage((p) => Math.max(p - 1, 1));
-                jobListRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm ${
+            className={`rounded-full p-1 px-3 text-sm font-medium transition-all duration-200 shadow-md ${
               currentPage === 1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-teal-50 border border-gray-200'
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
+            aria-label="Previous page"
           >
-            Previous
+            ‹ Prev
           </button>
-          <span className="text-sm font-medium text-gray-500 px-2">
-            Page {currentPage} of {totalPages}
-          </span>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`rounded-full px-2 py-1 text-sm font-medium transition-all duration-200 shadow-md ${
+                currentPage === page
+                  ? 'bg-gradient-to-r from-teal-500 to-indigo-600 text-white'
+                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+              }`}
+              aria-label={`Go to page ${page}`}
+            >
+              {page}
+            </button>
+          ))}
           <button
-            onClick={() => {
-                setCurrentPage((p) => Math.min(p + 1, totalPages));
-                jobListRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm ${
+            className={`rounded-full p-1 px-3 text-sm font-medium transition-all duration-200 shadow-md ${
               currentPage === totalPages
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-teal-50 border border-gray-200'
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
+            aria-label="Next page"
           >
-            Next
+            Next ›
           </button>
         </div>
       )}
