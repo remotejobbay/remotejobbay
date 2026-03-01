@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -49,14 +49,14 @@ const categories = [
 
 const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
-export default function Home() {
+// 1. Move the main logic to a sub-component
+function JobBoardContent() {
   const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputTerm, setInputTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   
-  // New Filter States
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [minSalary, setMinSalary] = useState<number>(0);
   const [sortBy, setSortBy] = useState('newest');
@@ -70,7 +70,6 @@ export default function Home() {
   const jobListRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Sync Category with URL
   useEffect(() => {
     const categoryQuery = searchParams.get('category');
     if (categoryQuery) {
@@ -103,7 +102,6 @@ export default function Home() {
         applyUrl: job.apply_url || job.applyUrl || '#', 
         datePosted: job.created_at || job.datePosted || new Date().toISOString(),
         salary: String(job.salary_text || job.salary || 'Not Listed'), 
-        // We'll extract a numeric value for the slider filter
         numericSalary: parseInt(String(job.salary_text || job.salary).replace(/[^0-9]/g, '')) || 0,
         category: job.category || 'Other',
         type: job.type || (job.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time')
@@ -149,15 +147,12 @@ export default function Home() {
       const matchSearch = searchTerm ? jobText.includes(searchTerm.toLowerCase()) : true;
       const matchCategory = selectedCategory === 'All' || j.category === selectedCategory;
       const matchType = selectedTypes.length === 0 || selectedTypes.includes(j.type);
-      
-      // Assumes numericSalary was parsed. If minSalary is 0, it ignores the filter.
       const matchSalary = minSalary === 0 || (j.numericSalary && j.numericSalary >= minSalary * 1000);
 
       return matchSearch && matchCategory && matchType && matchSalary;
     }).sort((a: any, b: any) => {
       if (sortBy === 'newest') return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
       if (sortBy === 'oldest') return new Date(a.datePosted).getTime() - new Date(b.datePosted).getTime();
-      // Add more sorting if needed
       return 0;
     });
   }, [jobs, searchTerm, selectedCategory, selectedTypes, minSalary, sortBy]);
@@ -165,11 +160,8 @@ export default function Home() {
   const paginatedJobs = filteredJobs.slice((currentPage - 1) * jobsPerPage, currentPage * jobsPerPage);
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
-  const CurrentCategoryIcon = categories.find(c => c.name === selectedCategory)?.icon || FaGlobeAmericas;
-
   return (
     <main className="min-h-screen bg-[#f3f4f6]">
-      {/* HERO SECTION */}
       <div className="relative bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white py-20 text-center">
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -181,7 +173,6 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* SEARCH BOX */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -208,18 +199,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* TWO-COLUMN JOB LISTINGS SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-12" ref={jobListRef}>
         <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8">
-          
-          {/* LEFT SIDEBAR: FILTERS PANEL */}
           <aside className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 lg:sticky lg:top-[85px] h-fit">
             <h3 className="text-lg font-bold text-gray-800 mb-5">Filters</h3>
             
-            {/* Custom Category Dropdown (Replaced Native Select) */}
             <div className="mb-6 border-b border-gray-100 pb-5">
               <h4 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Category</h4>
-              
               <div 
                 className="relative w-full"
                 ref={dropdownRef}
@@ -268,7 +254,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Job Type Filter */}
             <div className="mb-6 border-b border-gray-100 pb-5">
               <h4 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Job Type</h4>
               <div className="flex flex-col gap-2">
@@ -286,7 +271,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Salary Range Filter */}
             <div className="mb-2">
               <h4 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Min Salary (USD)</h4>
               <input 
@@ -308,9 +292,7 @@ export default function Home() {
             </div>
           </aside>
 
-          {/* RIGHT COLUMN: JOB LIST */}
           <div className="flex flex-col gap-5">
-            {/* Jobs Header */}
             <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">
                 {selectedCategory === 'All' ? 'Latest Opportunities' : `${selectedCategory} Roles`}
@@ -330,7 +312,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Job Cards */}
             <AnimatePresence mode="popLayout">
               {loading ? (
                 <div className="space-y-4">
@@ -368,7 +349,6 @@ export default function Home() {
               )}
             </AnimatePresence>
 
-            {/* PAGINATION */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-8">
                 <button
@@ -394,5 +374,14 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+// 2. Wrap the logic in Suspense to fix the Vercel Build Error
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f3f4f6] flex items-center justify-center">Loading job board...</div>}>
+      <JobBoardContent />
+    </Suspense>
   );
 }
