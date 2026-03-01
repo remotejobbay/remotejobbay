@@ -5,79 +5,115 @@ import { FaXTwitter, FaFacebookF, FaLinkedinIn } from 'react-icons/fa6';
 
 export default function Footer() {
   return (
-    <footer className="bg-white/95 backdrop-blur-lg mt-12 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-[#1f2937] text-white mt-12 pt-[60px] pb-[20px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+        
         {/* Logo and tagline */}
         <div>
           <Link
             href="/"
-            className="text-xl font-semibold text-gray-900 hover:text-indigo-600 font-sans transition-colors duration-200"
+            className="text-xl font-semibold text-white hover:text-[#2563eb] font-sans transition-colors duration-200 flex items-center gap-2"
           >
             🌍 RemoteJobBay
           </Link>
-          <p className="text-sm mt-2 text-gray-600 font-medium">
+          <p className="text-sm mt-4 text-white/80 font-medium leading-relaxed">
             Discover remote jobs from anywhere in the world.
           </p>
         </div>
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-gray-700 font-sans">Quick Links</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li><Link href="/" className="hover:text-indigo-600 transition-colors duration-200">Home</Link></li>
-            <li><Link href="/post" className="hover:text-indigo-600 transition-colors duration-200">Post a Job</Link></li>
-            <li><Link href="/categories" className="hover:text-indigo-600 transition-colors duration-200">Categories</Link></li>
-            <li><Link href="/bookmarks" className="hover:text-indigo-600 transition-colors duration-200">Bookmarks</Link></li>
+          <h3 className="text-lg font-semibold mb-5 text-white font-sans">Quick Links</h3>
+          <ul className="space-y-3 text-sm">
+            <li>
+              <Link href="/" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/post" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Post a Job
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Categories
+              </Link>
+            </li>
+            <li>
+              <Link href="/bookmarks" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Bookmarks
+              </Link>
+            </li>
           </ul>
         </div>
 
         {/* Company Info */}
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-gray-700 font-sans">Company</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li><Link href="/about" className="hover:text-indigo-600 transition-colors duration-200">About Us</Link></li>
-            <li><Link href="/contact" className="hover:text-indigo-600 transition-colors duration-200">Contact</Link></li>
-            <li><Link href="/legal" className="hover:text-indigo-600 transition-colors duration-200">Terms & Privacy</Link></li>
+          <h3 className="text-lg font-semibold mb-5 text-white font-sans">Company</h3>
+          <ul className="space-y-3 text-sm">
+            <li>
+              <Link href="/about" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                About Us
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Contact
+              </Link>
+            </li>
+            <li>
+              <Link href="/legal" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Terms & Privacy
+              </Link>
+            </li>
           </ul>
         </div>
 
         {/* Social Media */}
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-gray-700 font-sans">Follow Us</h3>
-          <div className="flex space-x-4 text-xl text-gray-600">
+          <h3 className="text-lg font-semibold mb-5 text-white font-sans">Follow Us</h3>
+          <div className="flex gap-4">
             <a
               href="https://x.com/remotejobbay?s=21"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-indigo-600 transition-colors duration-200"
+              className="w-9 h-9 flex items-center justify-center bg-white/10 rounded-full text-white/90 hover:bg-[#2563eb] hover:text-white transition-all duration-300"
               aria-label="X"
             >
-              <FaXTwitter />
+              <FaXTwitter size={18} />
             </a>
             <a
               href="http://facebook.com/Remotejobbay"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-indigo-600 transition-colors duration-200"
+              className="w-9 h-9 flex items-center justify-center bg-white/10 rounded-full text-white/90 hover:bg-[#2563eb] hover:text-white transition-all duration-300"
               aria-label="Facebook"
             >
-              <FaFacebookF />
+              <FaFacebookF size={18} />
             </a>
             <a
               href="https://www.linkedin.com/in/joel-kings-b58868372?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-indigo-600 transition-colors duration-200"
+              className="w-9 h-9 flex items-center justify-center bg-white/10 rounded-full text-white/90 hover:bg-[#2563eb] hover:text-white transition-all duration-300"
               aria-label="LinkedIn"
             >
-              <FaLinkedinIn />
+              <FaLinkedinIn size={18} />
             </a>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-gray-200 mt-6 py-4 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} RemoteJobBay. All rights reserved.
+      {/* Footer Bottom / Copyright */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border-t border-white/10 pt-5 pb-2 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70">
+          <p>© {new Date().getFullYear()} RemoteJobBay. All rights reserved.</p>
+          <div className="flex gap-5">
+            <Link href="/legal" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/legal" className="hover:text-white transition-colors">Terms of Service</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

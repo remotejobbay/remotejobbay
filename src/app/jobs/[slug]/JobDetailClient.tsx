@@ -11,11 +11,12 @@ import {
   FaMoneyBillWave,
   FaCalendarAlt,
   FaTags,
+  FaChevronLeft,
+  FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
 import { supabase } from '@/utils/supabase/supabaseClient';
-import { motion } from 'framer-motion';
 
 export default function JobDetailClient({ slug }: { slug: string }) {
   const [job, setJob] = useState<Job | null>(null);
@@ -24,15 +25,14 @@ export default function JobDetailClient({ slug }: { slug: string }) {
   const [similarJobs, setSimilarJobs] = useState<Job[]>([]);
   const [logoError, setLogoError] = useState(false);
 
-  // --- 1. NORMALIZATION: Map your 'jobs' DB columns to the UI ---
   const normalizeJobData = (rawJob: any): Job => {
     let finalSalary = 'Not specified';
     if (rawJob.salary_text && rawJob.salary_text !== 'Not Listed') {
-      finalSalary = rawJob.salary_text;
+      finalSalary = String(rawJob.salary_text);
     } else if (rawJob.salary && rawJob.salary !== '0' && rawJob.salary !== 0 && rawJob.salary !== 'Not Listed') {
-      finalSalary = rawJob.salary;
+      finalSalary = String(rawJob.salary);
     } else if (rawJob.salaryType && rawJob.salaryType !== 'None') {
-      finalSalary = rawJob.salaryType;
+      finalSalary = String(rawJob.salaryType);
     }
 
     return {
@@ -43,13 +43,12 @@ export default function JobDetailClient({ slug }: { slug: string }) {
       location: rawJob.location || 'Remote',
       description: rawJob.description || 'No description available.',
       logo: rawJob.logo,
-      // Fallbacks to handle both scraped data and manual entries
       applyUrl: rawJob.apply_url || rawJob.applyUrl || '#',
       datePosted: rawJob.created_at || rawJob.datePosted || new Date().toISOString(),
       salary: finalSalary,
       type: rawJob.type || (rawJob.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time'),
       category: rawJob.category || 'Other',
-      slug: rawJob.slug,
+      slug: rawJob.slug || String(rawJob.id),
     };
   };
 
@@ -57,345 +56,207 @@ export default function JobDetailClient({ slug }: { slug: string }) {
     async function fetchJobAndSimilar() {
       if (!slug) return;
       setLoading(true);
-
       try {
-        let foundJob = null;
-
-        // --- THE FIX: Extract the numeric ID from the end of the URL slug ---
-        // Converts "job-title-name-298" into "298", or keeps "298" as "298"
         const jobId = slug.split('-').pop();
-
-        // If we somehow didn't get a valid number, stop here safely
         if (!jobId || isNaN(Number(jobId))) {
           setJob(null);
           setLoading(false);
           return;
         }
 
-        // --- STRICTLY QUERY 'jobs' TABLE ONLY & ENFORCE VETTING ---
-        const { data: manualData, error } = await supabase
+        const { data: manualData } = await supabase
           .from('jobs')
           .select('*')
           .eq('post_to_site', true)
-          .eq('id', jobId) // Use the extracted numeric ID
+          .eq('id', jobId)
           .maybeSingle();
 
-        // Reveal true error details if they happen
-        if (error) {
-          console.error('Supabase error message:', error?.message);
-          console.error('Supabase error hint:', error?.hint);
-        }
-
         if (manualData) {
-          foundJob = normalizeJobData(manualData);
+          const foundJob = normalizeJobData(manualData);
+          setJob(foundJob);
+
+          const { data: relatedRaw } = await supabase
+            .from('jobs')
+            .select('*')
+            .eq('post_to_site', true)
+            .neq('id', foundJob.id)
+            .eq('category', foundJob.category)
+            .limit(4);
+
+          if (relatedRaw) {
+            setSimilarJobs(relatedRaw.map(normalizeJobData));
+          }
         }
-
-        // --- VALIDATION ---
-        if (!foundJob || !foundJob.applyUrl || foundJob.applyUrl.trim() === '') {
-          setJob(null);
-          setLoading(false);
-          return;
-        }
-
-        setJob(foundJob);
-
-        // Analytics
-        if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-          window.gtag('event', 'job_view', {
-            event_category: 'jobs',
-            event_label: `${foundJob.title} at ${foundJob.company}`,
-            job_id: foundJob.id,
-          });
-        }
-
-        // --- FETCH SIMILAR JOBS ---
-        const { data: relatedRaw } = await supabase
-          .from('jobs')
-          .select('*')
-          .eq('post_to_site', true) // <-- Ensure similar jobs are also vetted
-          .neq('id', foundJob.id)
-          .eq('category', foundJob.category)
-          .limit(5);
-
-        if (relatedRaw) {
-          const normalizedSimilar = relatedRaw
-            .map(normalizeJobData)
-            .filter((j) => j.applyUrl && j.applyUrl.trim() !== '#' && j.applyUrl.trim() !== '');
-          setSimilarJobs(normalizedSimilar);
-        }
-      } catch (error) {
-        console.error('Error fetching job details:', error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
     }
-
     fetchJobAndSimilar();
   }, [slug]);
 
   useEffect(() => {
     const saved = localStorage.getItem('bookmarkedJobs');
     if (saved) {
-      setBookmarked(JSON.parse(saved));
+      try {
+        setBookmarked(JSON.parse(saved));
+      } catch (e) {
+        setBookmarked([]);
+      }
     }
   }, []);
 
   const toggleBookmark = () => {
     if (!job) return;
     const idStr = String(job.id);
-    let updated = [...bookmarked];
-
-    if (bookmarked.includes(idStr)) {
-      updated = updated.filter((b) => b !== idStr);
-    } else {
-      updated.push(idStr);
-    }
-
+    const updated = bookmarked.includes(idStr) 
+      ? bookmarked.filter(b => b !== idStr) 
+      : [...bookmarked, idStr];
     setBookmarked(updated);
     localStorage.setItem('bookmarkedJobs', JSON.stringify(updated));
   };
 
-  const handleApplyClick = () => {
-    if (!job) return;
-
-    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-      window.gtag('event', 'job_apply', {
-        event_category: 'jobs',
-        event_label: `${job.title} at ${job.company}`,
-        job_id: job.id,
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-500 font-medium mt-10">
-        <svg
-          className="animate-spin h-8 w-8 mx-auto text-teal-500 mb-4"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
-        </svg>
-        Loading job details...
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6]">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-12 w-12 bg-[#dbeafe] rounded-full mb-4"></div>
+        <div className="h-4 w-32 bg-slate-200 rounded"></div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!job || !job.id) {
-    return (
-      <div className="p-6 text-center text-red-500 font-semibold mt-10">
-        Job not found or failed to load. It may have been removed or is pending approval.
-      </div>
-    );
-  }
+  if (!job) return <div className="p-20 text-center">Job not found.</div>;
 
-  const shouldShowLogo = job.logo && job.logo.trim() !== '' && !logoError;
-
-  // Split description into paragraphs
-  const paragraphs = job.description?.trim()
-    ? job.description
-        .split('\n')
-        .map((para) => para.trim())
-        .filter((para) => para.length > 0)
-    : ['No description provided.'];
+  const paragraphs = typeof job.description === 'string' 
+    ? job.description.split('\n').filter(p => p.trim() !== '') 
+    : [];
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-br from-teal-50/80 via-indigo-50/80 to-orange-50/80 backdrop-blur-md min-h-screen">
-      <Link
-        href="/"
-        className="text-teal-600 hover:text-teal-700 font-poppins text-sm mb-6 inline-block transition-colors duration-200"
-      >
-        ← Back to job listings
-      </Link>
-
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg"
-          >
-            <div className="flex flex-col sm:flex-row items-start gap-5 mb-6">
-              {shouldShowLogo ? (
-                <img
-                  src={job.logo}
-                  alt={job.company}
-                  className="w-20 h-20 object-contain rounded-full border-2 border-teal-100 shadow-md bg-white"
-                  onError={() => setLogoError(true)}
-                />
-              ) : (
-                <div className="w-20 h-20 flex items-center justify-center bg-teal-100 rounded-full text-teal-600 font-bold text-3xl shadow-md border-2 border-teal-100 flex-shrink-0">
-                  {job.company.charAt(0)}
-                </div>
-              )}
-              <div>
-                <h1 className="text-3xl font-extrabold text-teal-800 font-poppins mb-2 drop-shadow-sm">
-                  {job.title}
-                </h1>
-                <p className="text-lg text-indigo-600 font-semibold font-poppins mb-3">
-                  {job.company}
-                </p>
-                <div className="flex flex-wrap gap-3 text-sm text-gray-700">
-                  <span className="flex items-center gap-2 bg-teal-100/80 px-3 py-1 rounded-full">
-                    <FaMapMarkerAlt className="text-teal-500" /> {job.location}
-                  </span>
-                  <span className="flex items-center gap-2 bg-indigo-100/80 px-3 py-1 rounded-full">
-                    <FaMoneyBillWave className="text-indigo-500" /> {job.salary}
-                  </span>
-                  <span className="flex items-center gap-2 bg-orange-100/80 px-3 py-1 rounded-full">
-                    <FaCalendarAlt className="text-orange-500" />{' '}
-                    {new Date(job.datePosted).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center gap-2 bg-purple-100/80 px-3 py-1 rounded-full capitalize">
-                    <FaTags className="text-purple-500" /> {job.type}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="bg-gray-50/90 p-6 rounded-xl shadow-inner text-base leading-relaxed text-gray-800 mb-8 space-y-4"
-            >
-              {paragraphs.map((para, index) => (
-                <p key={index} className="mb-4 last:mb-0">
-                  {para}
-                </p>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-r from-teal-100/80 to-indigo-100/80 backdrop-blur-md p-6 rounded-xl shadow-md mb-8 text-center"
-            >
-              <h2 className="text-xl font-bold text-teal-800 font-poppins mb-3 flex items-center justify-center gap-2">
-                <FaBriefcase className="text-teal-600" /> Found This Job on
-                RemoteJobBay?
-              </h2>
-              <p className="text-gray-700 text-base">
-                Let the employer know you discovered this opportunity on{' '}
-                <strong>RemoteJobBay</strong>! Mentioning us in your application
-                helps us connect top talent like you with amazing remote jobs.
-              </p>
-            </motion.div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
-              <button
-                onClick={toggleBookmark}
-                className="bg-yellow-100/80 text-yellow-700 px-4 py-2 rounded-lg hover:bg-yellow-200 flex items-center gap-2 shadow-md transition-colors duration-200"
-              >
-                {bookmarked.includes(String(job.id)) ? <FaStar /> : <FaRegStar />}
-                {bookmarked.includes(String(job.id)) ? 'Bookmarked' : 'Save Job'}
-              </button>
-              <a
-                href={job.applyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleApplyClick}
-                className={`px-6 py-2 rounded-lg shadow-md text-white transition-colors duration-200 ease-in-out ${
-                  job.applyUrl && job.applyUrl !== '#'
-                    ? 'bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700'
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Apply Now
-              </a>
-            </div>
-          </motion.div>
-
-          {similarJobs.length > 0 && (
-            <section className="mb-12 mt-8">
-              <h2 className="text-2xl font-semibold text-teal-800 font-poppins mb-5">
-                Similar Jobs
-              </h2>
-              <div className="overflow-x-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {similarJobs.map((sim, i) => (
-                    <motion.div
-                      key={sim.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.1 * i }}
-                      className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200"
-                    >
-                      <Link
-                        href={`/jobs/${sim.slug || sim.id}`}
-                        className="text-teal-600 font-medium hover:underline line-clamp-1"
-                      >
-                        {sim.title}
-                      </Link>
-                      <p className="text-sm text-gray-600 mt-1 truncate">{sim.company}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(sim.datePosted).toLocaleDateString()}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          <div className="mt-8">
-             <EmailSubscription />
+    <main className="bg-[#f3f4f6] min-h-screen pb-20 font-sans">
+      {/* 1. Header Navigation - Removed Apply Button */}
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-[0_2px_5px_rgba(0,0,0,0.1)]">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center text-[#6b7280] hover:text-[#2563eb] font-medium transition-colors">
+            <FaChevronLeft className="mr-2 text-xs" /> Back to Search
+          </Link>
+          <div className="flex gap-3">
+            <button onClick={toggleBookmark} className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors">
+              {bookmarked.includes(String(job.id)) ? <FaStar className="text-yellow-500" /> : <FaRegStar className="text-slate-400" />}
+            </button>
           </div>
         </div>
+      </nav>
 
-        <aside className="mt-8 md:mt-0 md:sticky md:top-24 md:h-fit">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-gradient-to-br from-yellow-100/80 to-orange-100/80 backdrop-blur-md border border-yellow-200 p-5 rounded-xl shadow-lg space-y-4"
-          >
-            <h2 className="text-xl font-bold text-yellow-800 font-poppins flex items-center gap-2">
-              <FaBriefcase className="text-yellow-600" /> Job Summary
-            </h2>
-            <ul className="text-sm text-yellow-900 space-y-3">
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaBriefcase className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Position:</strong>{' '}
-                <span className="truncate">{job.title}</span>
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaBuilding className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Company:</strong>{' '}
-                <span className="truncate">{job.company}</span>
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaMapMarkerAlt className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Location:</strong>{' '}
-                <span className="truncate">{job.location}</span>
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaTags className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Type:</strong>{' '}
-                <span className="capitalize">{job.type}</span>
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaMoneyBillWave className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Salary:</strong> {job.salary}
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaCalendarAlt className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Posted:</strong>{' '}
-                {new Date(job.datePosted).toLocaleDateString()}
-              </li>
-              <li className="flex items-center gap-3 bg-white/50 p-2 rounded-lg shadow-sm">
-                <FaTags className="text-yellow-600" />{' '}
-                <strong className="w-24 shrink-0">Category:</strong> {job.category}
-              </li>
-            </ul>
-          </motion.div>
-        </aside>
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <div className="grid lg:grid-cols-12 gap-10">
+          
+          {/* Main Content Column */}
+          <div className="lg:col-span-8 space-y-8">
+            <section className="bg-white border border-slate-200 rounded-[8px] p-8 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+              {/* Job Header */}
+              <div className="flex flex-col md:flex-row md:items-start gap-6 mb-8">
+                {job.logo && !logoError ? (
+                  <img 
+                    src={job.logo} 
+                    alt={job.company} 
+                    className="w-[80px] h-[80px] rounded-[8px] object-cover border border-slate-100 p-1 bg-white flex-shrink-0" 
+                    onError={() => setLogoError(true)} 
+                  />
+                ) : (
+                  <div className="w-[80px] h-[80px] rounded-[8px] bg-[#dbeafe] flex items-center justify-center text-[#2563eb] text-3xl font-bold border border-[#dbeafe] flex-shrink-0">
+                    {job.company.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold text-[#1f2937] leading-tight mb-3">{job.title}</h1>
+                  <div className="flex flex-wrap items-center gap-y-2 gap-x-5 text-[#6b7280]">
+                    <span className="flex items-center gap-1.5 font-medium text-[#2563eb]">
+                      <FaBuilding className="text-sm" /> {job.company}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <FaMapMarkerAlt className="text-sm" /> {job.location}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <FaCalendarAlt className="text-sm" /> {new Date(job.datePosted).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Job Description */}
+              <div className="prose prose-slate max-w-none border-t border-slate-100 pt-8">
+                <h3 className="text-xl font-bold text-[#1f2937] mb-4">About the role</h3>
+                <div className="space-y-4 text-[#1f2937] leading-[1.7] text-lg">
+                  {paragraphs.map((para, i) => <p key={i}>{para}</p>)}
+                </div>
+              </div>
+
+              {/* 2. New Apply Section at the Bottom of Description */}
+              <div className="mt-12 pt-10 border-t border-slate-200 flex flex-col items-center text-center">
+                <h3 className="text-2xl font-bold text-[#1f2937] mb-6">Ready to join the team?</h3>
+                <a 
+                  href={job.applyUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-10 py-4 rounded-[8px] font-bold text-[1.1rem] flex items-center gap-3 transition-all duration-300 shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_15px_rgba(0,0,0,0.1)] hover:-translate-y-[2px]"
+                >
+                  Apply for this position <FaExternalLinkAlt className="text-sm" />
+                </a>
+              </div>
+            </section>
+
+            {/* Similar Jobs */}
+            {similarJobs.length > 0 && (
+              <section>
+                <h3 className="text-xl font-bold text-[#1f2937] mb-6 flex items-center gap-2">Similar Opportunities</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {similarJobs.map((sim) => (
+                    <Link key={String(sim.id)} href={`/jobs/${sim.slug || sim.id}`} className="block group bg-white border border-transparent p-5 rounded-[8px] hover:border-[#2563eb] transition-all shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:-translate-y-[3px]">
+                      <h4 className="font-bold text-[#1f2937] group-hover:text-[#2563eb] transition-colors line-clamp-1 mb-1">{sim.title}</h4>
+                      <p className="text-[#6b7280] text-sm mb-3">{sim.company}</p>
+                      <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#6b7280]">
+                        <span>{sim.location}</span>
+                        <span className="text-[#2563eb] bg-[#dbeafe] px-2 py-1 rounded-full">{sim.type}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="lg:col-span-4 space-y-6">
+            <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)] sticky top-24">
+              <h3 className="text-lg font-bold text-[#1f2937] mb-6 border-b border-slate-100 pb-4">Job Details</h3>
+              <div className="space-y-6">
+                <DetailItem icon={<FaMoneyBillWave />} label="Salary Range" value={String(job.salary ?? 'Not specified')} />
+                <DetailItem icon={<FaTags />} label="Category" value={String(job.category ?? 'Other')} />
+                <DetailItem icon={<FaBriefcase />} label="Job Type" value={String(job.type ?? 'Full-time')} className="capitalize" />
+                <DetailItem icon={<FaMapMarkerAlt />} label="Location" value={String(job.location ?? 'Remote')} />
+              </div>
+              {/* Note: The sidebar "Apply" button has been completely removed to force scrolling */}
+            </div>
+            
+            <div className="rounded-[8px] overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+              <EmailSubscription />
+            </div>
+          </aside>
+        </div>
       </div>
     </main>
+  );
+}
+
+function DetailItem({ icon, label, value, className = "" }: { icon: React.ReactNode, label: string, value: string, className?: string }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="text-[#6b7280] mt-1 text-lg">{icon}</div>
+      <div>
+        <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wider mb-1">{label}</p>
+        <p className={`text-[#1f2937] font-medium ${className}`}>{value}</p>
+      </div>
+    </div>
   );
 }
