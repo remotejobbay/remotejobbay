@@ -42,7 +42,7 @@ const categories = [
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
@@ -139,7 +139,7 @@ export default function Header() {
           {user ? (
             <>
               <span className="text-xs font-semibold text-amber-900/70 tracking-wide">
-                Hi, {user.email.split('@')[0]}
+                Hi, {(user.email ?? 'user').split('@')[0]}
               </span>
               <button
                 onClick={async () => {
@@ -195,3 +195,4 @@ export default function Header() {
     </header>
   );
 }
+

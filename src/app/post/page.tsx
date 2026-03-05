@@ -3,23 +3,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
-import { motion } from 'framer-motion'; // Using Framer Motion for consistency
+import { motion } from 'framer-motion';
 import { FaRocket, FaPaperPlane, FaGlobe, FaStar, FaCheckCircle } from 'react-icons/fa';
 
-// --- Configuration ---
-const CONTACT_EMAIL = "barnwool@yahoo.com";
-const PRICE = "$70";
-const DURATION = "7 days";
+const CONTACT_EMAIL = 'barnwool@yahoo.com';
 
 export default function PostJobPage() {
-  // Assuming your useUser hook exposes a 'loading' state. 
-  // If not, you can remove the loading check, but it helps prevent flickering.
-  const { user, loading } = useUser(); 
+  const { user, loading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/auth');
     }
   }, [user, loading, router]);
 
@@ -31,44 +26,42 @@ export default function PostJobPage() {
     );
   }
 
-  if (!user) return null; // Logic in useEffect handles the redirect
+  if (!user) return null;
 
   return (
-    <motion.main 
+    <motion.main
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6 min-h-screen"
     >
-      {/* Hero Section */}
       <section className="text-center mb-12 bg-gradient-to-br from-white to-blue-50 p-10 rounded-3xl shadow-xl border border-blue-100">
-        <motion.div 
+        <motion.div
           animate={{ y: [0, -10, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
           className="inline-block"
         >
           <FaRocket className="text-6xl text-blue-600 mb-6" />
         </motion.div>
-        
+
         <h1 className="text-4xl font-extrabold text-blue-900 mb-4 tracking-tight">
           Post Your Job on <span className="text-blue-600">RemoteJobBay</span>
         </h1>
-        
+
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Attract top-tier global talent. For just <span className="font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-lg">{PRICE}</span>, 
-          your listing will be pinned to the top of our feed for <span className="font-bold text-gray-800">{DURATION}</span>.
+          Attract top-tier global talent. Send us your role details by email and we will review and publish your listing.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-            <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                <FaGlobe className="text-blue-500" /> Global Reach
-            </div>
-            <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                <FaStar className="text-yellow-500" /> Featured Listing
-            </div>
-            <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                <FaCheckCircle className="text-green-500" /> Instant Exposure
-            </div>
+          <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+            <FaGlobe className="text-blue-500" /> Global Reach
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+            <FaStar className="text-yellow-500" /> Premium Listing
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+            <FaCheckCircle className="text-green-500" /> Fast Review
+          </div>
         </div>
 
         <a
@@ -83,12 +76,11 @@ export default function PostJobPage() {
         </p>
       </section>
 
-      {/* Why Choose Us Section */}
       <section className="grid md:grid-cols-3 gap-6 mb-12">
         {[
-          { icon: FaGlobe, title: "Global Talent Pool", desc: "Connect with skilled professionals from every corner of the world." },
-          { icon: FaStar, title: "Premium Visibility", desc: "Your job listing shines at the top of our platform for a full week." },
-          { icon: FaPaperPlane, title: "Simple Process", desc: `Email us your details. Once payment is confirmed, we go live.` }
+          { icon: FaGlobe, title: 'Global Talent Pool', desc: 'Connect with skilled professionals from every corner of the world.' },
+          { icon: FaStar, title: 'Premium Visibility', desc: 'Your listing is reviewed and published for quality visibility on the platform.' },
+          { icon: FaPaperPlane, title: 'Simple Process', desc: 'Email us your job details and we will review and publish quickly.' },
         ].map((item, index) => (
           <div key={index} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <item.icon className="text-3xl text-blue-500 mb-4" />
@@ -98,15 +90,13 @@ export default function PostJobPage() {
         ))}
       </section>
 
-      {/* Trust Badge / Final CTA */}
       <section className="text-center bg-blue-900 text-white p-10 rounded-3xl shadow-2xl relative overflow-hidden">
-        {/* Abstract background circle */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-800 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
 
         <div className="relative z-10">
           <h2 className="text-3xl font-bold mb-4">Ready to hire your next star?</h2>
           <p className="text-blue-200 mb-8 max-w-lg mx-auto">
-            Don’t miss out on the opportunity to tap into a worldwide pool of talent.
+            Send your role details today and we will help you reach remote talent worldwide.
           </p>
           <a
             href={`mailto:${CONTACT_EMAIL}?subject=Post%20a%20Job%20on%20RemoteJobBay`}

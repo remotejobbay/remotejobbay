@@ -6,7 +6,7 @@ import Script from 'next/script';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.remotejobbay.com'), // ✅ sets canonical base domain
+  metadataBase: new URL('https://www.remotejobbay.com'),
   title: 'RemoteJobBay',
   description: 'High-quality, fully remote jobs that you can do from any country',
   keywords: 'remote jobs, work from home, global opportunities, remote work',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: 'RemoteJobBay',
     images: [
       {
-        url: 'https://www.remotejobbay.com/og-image.jpg',
+        url: 'https://www.remotejobbay.com/default-logo.png',
         width: 1200,
         height: 630,
       },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'RemoteJobBay - Remote Jobs Worldwide',
     description: 'Discover the best remote jobs from anywhere in the world.',
-    images: ['https://www.remotejobbay.com/og-image.jpg'],
+    images: ['https://www.remotejobbay.com/default-logo.png'],
   },
 };
 
@@ -37,9 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* ✅ Viewport Meta Tag for Mobile Scaling */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        {/* ✅ Google Analytics Scripts */}
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-9W914ZELWS"
@@ -57,12 +55,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-        {/* ✅ Google Fonts */}
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
-        {/* ✅ Favicon */}
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-gradient-to-br from-teal-50 via-indigo-50 to-orange-50 text-gray-900 min-h-screen font-inter">

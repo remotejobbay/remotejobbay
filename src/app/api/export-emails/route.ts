@@ -9,23 +9,28 @@ const supabase = createClient(
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
-  const SECRET = process.env.EXPORT_SECRET_TOKEN;
+  const secret = process.env.EXPORT_SECRET_TOKEN;
 
-  if (authHeader !== `Bearer ${SECRET}`) {
+  if (!secret || authHeader !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabase.from('subscriptions').select('*');
+  const { data, error } = await supabase
+    .from('emails')
+    .select('email, created_at')
+    .order('created_at', { ascending: false });
 
   if (error) {
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
   }
 
-  const csv = data.map(row => row.email).join('\n');
+  const rows = data ?? [];
+  const csvLines = ['email,created_at', ...rows.map((row) => `${row.email},${row.created_at ?? ''}`)];
+  const csv = csvLines.join('\n');
 
   return new NextResponse(csv, {
     headers: {
-      'Content-Type': 'text/csv',
+      'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': 'attachment; filename=subscribers.csv',
     },
   });
