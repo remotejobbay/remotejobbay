@@ -186,6 +186,7 @@ function JobBoardContent() {
                 value={inputTerm}
                 onChange={(e) => setInputTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                suppressHydrationWarning
                 className="w-full pl-11 pr-4 py-3 bg-transparent focus:outline-none text-gray-800 text-base"
               />
             </div>
@@ -304,6 +305,7 @@ function JobBoardContent() {
                 <select 
                   value={sortBy} 
                   onChange={(e) => setSortBy(e.target.value)}
+                  suppressHydrationWarning
                   className="p-1.5 text-sm border border-gray-200 rounded text-gray-700 bg-gray-50 focus:outline-none focus:border-[#2563eb]"
                 >
                   <option value="newest">Newest First</option>

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/utils/supabase/supabaseClient'; // Adjust if using API instead
 
 export default function EmailSubscription() {
   const [email, setEmail] = useState('');
@@ -14,21 +13,28 @@ export default function EmailSubscription() {
     if (!email) return;
 
     try {
-      const { error } = await supabase.from('subscribers').insert({ email }); // Replace with fetch if using API
-      if (error) {
-        setMessage('Error subscribing. Please try again.');
-      } else {
-        setSubmitted(true);
-        setEmail('');
-        setMessage('✅ Thank you! Alerts will arrive soon.');
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-        // ✅ Google Analytics event
-        if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-          window.gtag('event', 'email_subscribed', {
-            event_category: 'engagement',
-            event_label: 'Homepage Subscription',
-          });
-        }
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data?.error || 'Error subscribing. Please try again.');
+        return;
+      }
+
+      setSubmitted(true);
+      setEmail('');
+      setMessage('Thank you. Alerts will arrive soon.');
+
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        window.gtag('event', 'email_subscribed', {
+          event_category: 'engagement',
+          event_label: 'Homepage Subscription',
+        });
       }
     } catch (err) {
       console.error(err);
@@ -44,9 +50,7 @@ export default function EmailSubscription() {
         transition={{ duration: 0.5 }}
         className="card-content max-w-xl bg-white rounded-xl p-6 shadow-lg text-center transform -translate-y-1/2"
       >
-        <div className="fas fa-envelope bg-teal-600 text-white rounded-full p-4 mb-4 inline-block">
-          {/* Replace with an envelope icon if desired; using a div as a placeholder */}
-        </div>
+        <div className="fas fa-envelope bg-teal-600 text-white rounded-full p-4 mb-4 inline-block" />
         <h2 className="text-2xl font-bold text-teal-800 font-poppins uppercase mb-4">
           Get Exclusive Remote Job Alerts
         </h2>

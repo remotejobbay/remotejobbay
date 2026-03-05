@@ -139,7 +139,7 @@ export default function Header() {
           {user ? (
             <>
               <span className="text-xs font-semibold text-amber-900/70 tracking-wide">
-                Hi, {user.email.split('@')[0]}
+                Hi, {(user.email ?? 'user').split('@')[0]}
               </span>
               <button
                 onClick={async () => {
