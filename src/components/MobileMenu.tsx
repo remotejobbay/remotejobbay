@@ -19,14 +19,24 @@ export default function MobileMenu() {
   
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll when menu is open
+  // CLICK OUTSIDE TO CLOSE MENU
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      // If the menu is open, and the click happened outside our containerRef, close it
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
-    return () => { document.body.style.overflow = 'unset'; };
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [isOpen]);
 
   const handlePostJobClick = () => {
@@ -68,10 +78,10 @@ export default function MobileMenu() {
         </div>
       </button>
 
-      {/* FULL SCREEN OVERLAY (Fixed layout to prevent cut-offs) */}
+      {/* FULL SCREEN OVERLAY - Bumped to z-[999] */}
       <div 
-        className={`fixed left-0 right-0 bottom-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out transform ${
-          isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
+        className={`fixed left-0 right-0 bottom-0 z-[999] bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out transform origin-top ${
+          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
         }`}
         style={{ top: '60px' }} // Adjust this to match your exact Navbar height
       >
@@ -128,7 +138,7 @@ export default function MobileMenu() {
             )}
           </nav>
 
-          {/* ACTION BUTTONS (Pushed safely to the bottom area) */}
+          {/* ACTION BUTTONS */}
           <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4 pb-8 shrink-0">
             <button
               onClick={handlePostJobClick}
