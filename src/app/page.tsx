@@ -101,8 +101,13 @@ function JobBoardContent() {
         location: job.location || 'Remote',
         applyUrl: job.apply_url || job.applyUrl || '#', 
         datePosted: job.created_at || job.datePosted || new Date().toISOString(),
-        salary: String(job.salary_text || job.salary || 'Not Listed'), 
-        numericSalary: parseInt(String(job.salary_text || job.salary).replace(/[^0-9]/g, '')) || 0,
+        
+        // --- THIS IS THE FIX ---
+        // Checks job.salary first, then job.salary_text, then defaults to 'Not Listed'
+        salary: String(job.salary || job.salary_text || 'Not Listed'), 
+        numericSalary: parseInt(String(job.salary || job.salary_text).replace(/[^0-9]/g, '')) || 0,
+        // -----------------------
+
         category: job.category || 'Other',
         type: job.type || (job.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time')
       }));

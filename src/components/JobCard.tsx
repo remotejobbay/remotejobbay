@@ -6,6 +6,7 @@ import {
   FaStar,
   FaMapMarkerAlt,
   FaBriefcase,
+  FaTag, // 1. Added FaTag for the job category icon
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
@@ -120,6 +121,12 @@ export default function JobCard({
             <span className="flex items-center gap-1.5">
               <FaBriefcase className="text-[#6b7280]" /> {job.type}
             </span>
+            {/* 2. Added Job Category here */}
+            {job.category && (
+              <span className="flex items-center gap-1.5">
+                <FaTag className="text-[#6b7280]" /> {job.category}
+              </span>
+            )}
           </div>
         </div>
 
@@ -152,7 +159,8 @@ export default function JobCard({
             </Link>
           </div>
           
-          <span className="text-[#6b7280] text-[0.85rem] mt-auto hidden md:block">
+          {/* 3. Removed 'hidden md:block' so the date shows on all screen sizes */}
+          <span className="text-[#6b7280] text-[0.85rem] mt-auto">
             {postedLabel(job.datePosted)}
           </span>
         </div>
