@@ -24,6 +24,12 @@
 # misc
 .DS_Store
 *.pem
+*.rar
+New Text Document.txt
+backend/current
+backend/pagenew
+backend/Terminal codes
+backend/__pycache__/
 
 # debug
 npm-debug.log*

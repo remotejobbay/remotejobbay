@@ -27,7 +27,7 @@ export default function AboutPage() {
 
         <h2 className="text-xl md:text-2xl font-semibold mt-8 mb-4 text-purple-700">💡 Why RemoteJobBay Was Created</h2>
         <p className="mb-4">
-          Too often, job seekers come across <span className="text-red-500">misleading "remote" jobs</span> that require relocation or are limited to select regions.
+          Too often, job seekers come across <span className="text-red-500">misleading &quot;remote&quot; jobs</span> that require relocation or are limited to select regions.
           <strong className="text-blue-700"> We built RemoteJobBay to eliminate that confusion.</strong>
         </p>
 
@@ -67,7 +67,7 @@ export default function AboutPage() {
           RemoteJobBay helps bridge the gap between skilled professionals and companies that embrace <span className="italic text-blue-700">true remote collaboration</span>.
         </p>
 
-        <h2 className="text-xl md:text-2xl font-semibold mt-8 mb-4 text-purple-700">🌐 Who It's For</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mt-8 mb-4 text-purple-700">🌐 Who It&apos;s For</h2>
         <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700">
           <li>🌎 Freelancers seeking remote-first work</li>
           <li>✈️ Digital nomads</li>
@@ -99,3 +99,4 @@ export default function AboutPage() {
     </main>
   );
 }
+

@@ -49,9 +49,13 @@ const categories = [
 
 const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
+type JobListItem = Job & {
+  numericSalary: number;
+};
+
 function JobBoardContent() {
   const searchParams = useSearchParams();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobListItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputTerm, setInputTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -106,7 +110,7 @@ function JobBoardContent() {
         type: job.type || (job.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time')
       }));
 
-      setJobs(formattedJobs as any);
+      setJobs(formattedJobs as JobListItem[]);
       setLoading(false);
     };
     fetchJobs();
@@ -141,7 +145,7 @@ function JobBoardContent() {
   };
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter((j: any) => {
+    return jobs.filter((j) => {
       const jobText = `${j.title} ${j.company} ${j.category}`.toLowerCase();
       const matchSearch = searchTerm ? jobText.includes(searchTerm.toLowerCase()) : true;
       const matchCategory = selectedCategory === 'All' || j.category === selectedCategory;
@@ -149,7 +153,7 @@ function JobBoardContent() {
       const matchSalary = minSalary === 0 || (j.numericSalary && j.numericSalary >= minSalary * 1000);
 
       return matchSearch && matchCategory && matchType && matchSalary;
-    }).sort((a: any, b: any) => {
+    }).sort((a, b) => {
       if (sortBy === 'newest') return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
       if (sortBy === 'oldest') return new Date(a.datePosted).getTime() - new Date(b.datePosted).getTime();
       return 0;
@@ -386,3 +390,4 @@ export default function Home() {
     </Suspense>
   );
 }
+

@@ -1,9 +1,17 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase/supabaseClient';
 
+type ScrapedJob = {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+};
+
 export default function VettingPage() {
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<ScrapedJob[]>([]);
 
   useEffect(() => {
     fetchScrapedJobs();
@@ -11,20 +19,20 @@ export default function VettingPage() {
 
   async function fetchScrapedJobs() {
     const { data } = await supabase.from('scraped_jobs').select('*');
-    if (data) setJobs(data);
+    if (data) setJobs(data as ScrapedJob[]);
   }
 
   async function handleApprove(id: number) {
     const { error } = await supabase.rpc('approve_scraped_job', { job_id: id });
     if (!error) {
-      setJobs(jobs.filter(job => job.id !== id));
-      alert("Job Approved and Moved to Live!");
+      setJobs(jobs.filter((job) => job.id !== id));
+      alert('Job Approved and Moved to Live!');
     }
   }
 
   async function handleReject(id: number) {
     const { error } = await supabase.from('scraped_jobs').delete().eq('id', id);
-    if (!error) setJobs(jobs.filter(job => job.id !== id));
+    if (!error) setJobs(jobs.filter((job) => job.id !== id));
   }
 
   return (
@@ -34,25 +42,25 @@ export default function VettingPage() {
         <div key={job.id} className="border p-4 mb-4 rounded shadow flex justify-between items-center bg-white">
           <div>
             <h2 className="font-bold text-lg">{job.title}</h2>
-            <p className="text-gray-600">{job.company} • {job.location}</p>
+            <p className="text-gray-600">{job.company} - {job.location}</p>
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => handleApprove(job.id)}
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
-              Approve ✅
+              Approve
             </button>
-            <button 
+            <button
               onClick={() => handleReject(job.id)}
               className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
-              Reject ❌
+              Reject
             </button>
           </div>
         </div>
       ))}
-      {jobs.length === 0 && <p>No jobs to vet. Take a break! ☕</p>}
+      {jobs.length === 0 && <p>No jobs to vet. Take a break!</p>}
     </div>
   );
 }

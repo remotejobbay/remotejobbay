@@ -17,6 +17,25 @@ import {
 import { Job } from '@/types';
 import EmailSubscription from '@/components/EmailSubscription';
 import { supabase } from '@/utils/supabase/supabaseClient';
+type RawJob = {
+  [key: string]: unknown;
+  id?: string | number;
+  title?: string;
+  company?: string;
+  location?: string;
+  description?: string;
+  logo?: string;
+  apply_url?: string;
+  applyUrl?: string;
+  created_at?: string;
+  datePosted?: string;
+  salary?: string | number;
+  salary_text?: string;
+  salaryType?: string;
+  type?: string;
+  category?: string;
+  slug?: string | number;
+};
 
 export default function JobDetailClient({ slug }: { slug: string }) {
   const [job, setJob] = useState<Job | null>(null);
@@ -25,7 +44,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
   const [similarJobs, setSimilarJobs] = useState<Job[]>([]);
   const [logoError, setLogoError] = useState(false);
 
-  const normalizeJobData = (rawJob: any): Job => {
+  const normalizeJobData = (rawJob: RawJob): Job => {
     let finalSalary = 'Not specified';
     if (rawJob.salary_text && rawJob.salary_text !== 'Not Listed') {
       finalSalary = String(rawJob.salary_text);
@@ -48,7 +67,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
       salary: finalSalary,
       type: rawJob.type || (rawJob.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time'),
       category: rawJob.category || 'Other',
-      slug: rawJob.slug || String(rawJob.id),
+      slug: String(rawJob.slug ?? rawJob.id),
     };
   };
 
@@ -260,3 +279,4 @@ function DetailItem({ icon, label, value, className = "" }: { icon: React.ReactN
     </div>
   );
 }
+

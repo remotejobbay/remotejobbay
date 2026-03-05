@@ -155,7 +155,7 @@ export default function CategoriesPage() {
         <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
             <FaBriefcase className="mx-auto text-5xl text-gray-200 mb-4" />
             <h3 className="text-xl font-bold text-gray-800">No jobs found in {selectedCategory}</h3>
-            <p className="text-gray-500 mt-2">Try selecting "All" or a different category.</p>
+            <p className="text-gray-500 mt-2">Try selecting &quot;All&quot; or a different category.</p>
         </div>
       )}
     </motion.main>
