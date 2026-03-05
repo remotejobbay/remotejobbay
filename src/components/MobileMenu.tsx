@@ -6,7 +6,6 @@ import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import { 
   FaHome, 
-  FaInfoCircle, 
   FaSignInAlt, 
   FaSignOutAlt, 
   FaBriefcase 
@@ -44,6 +43,7 @@ export default function MobileMenu() {
   };
 
   const handleLogout = async () => {
+    // Using your existing logout logic
     await fetch('/api/logout', { method: 'POST' });
     location.reload();
   };
@@ -100,6 +100,7 @@ export default function MobileMenu() {
 
           {/* NAVIGATION LINKS */}
           <nav className="flex flex-col space-y-1 shrink-0">
+            {/* HOME */}
             <Link 
               href="/" 
               onClick={() => setIsOpen(false)}
@@ -111,17 +112,18 @@ export default function MobileMenu() {
               Home
             </Link>
 
-            <Link 
-              href="/about" 
-              onClick={() => setIsOpen(false)}
-              className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
+            {/* POST A JOB (Now integrated in the list) */}
+            <button 
+              onClick={handlePostJobClick}
+              className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100 text-left"
             >
               <div className="bg-gray-100 group-hover:bg-white p-2 rounded-lg transition-colors">
-                <FaInfoCircle className="text-gray-500 group-hover:text-blue-500 text-sm" />
+                <FaBriefcase className="text-gray-500 group-hover:text-blue-500 text-sm" />
               </div>
-              About Us
-            </Link>
+              Post a Job
+            </button>
 
+            {/* LOGIN / SIGN UP (Only if not logged in) */}
             {!user && (
               <Link 
                 href="/auth" 
@@ -136,24 +138,17 @@ export default function MobileMenu() {
             )}
           </nav>
 
-          {/* ACTION BUTTONS */}
-          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3 shrink-0">
-            <button
-              onClick={handlePostJobClick}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-xl font-bold text-base shadow-md shadow-blue-200 flex items-center justify-center gap-2 active:scale-95 transition-transform"
-            >
-              <FaBriefcase /> Post a Job
-            </button>
-
-            {user && (
+          {/* LOGOUT BUTTON (Only if logged in) */}
+          {user && (
+            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col shrink-0">
               <button
                 onClick={handleLogout}
                 className="w-full bg-red-50 text-red-500 p-3 rounded-xl font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform border border-red-100 hover:bg-red-100"
               >
                 <FaSignOutAlt /> Log Out
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
         </div>
       </div>
