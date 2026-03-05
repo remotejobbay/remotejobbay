@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/utils/supabase/supabaseClient';
 import { 
   FaHome, 
   FaSignInAlt, 
@@ -43,8 +44,7 @@ export default function MobileMenu() {
   };
 
   const handleLogout = async () => {
-    // Using your existing logout logic
-    await fetch('/api/logout', { method: 'POST' });
+    await supabase.auth.signOut();
     location.reload();
   };
 
