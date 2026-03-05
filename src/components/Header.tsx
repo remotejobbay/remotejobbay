@@ -170,7 +170,8 @@ export default function Header() {
         </nav>
 
         {/* Mobile Hamburger Button */}
-        <div className="md:hidden flex items-center gap-2">
+        {/* FIX APPLIED HERE: Added 'relative z-[9999]' to ensure stacking context is respected */}
+        <div className="md:hidden flex items-center gap-2 relative z-[9999]">
            <MobileMenu />
         </div>
       </div>

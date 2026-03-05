@@ -49,7 +49,6 @@ const categories = [
 
 const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
-// 1. Move the main logic to a sub-component
 function JobBoardContent() {
   const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -101,13 +100,8 @@ function JobBoardContent() {
         location: job.location || 'Remote',
         applyUrl: job.apply_url || job.applyUrl || '#', 
         datePosted: job.created_at || job.datePosted || new Date().toISOString(),
-        
-        // --- THIS IS THE FIX ---
-        // Checks job.salary first, then job.salary_text, then defaults to 'Not Listed'
         salary: String(job.salary || job.salary_text || 'Not Listed'), 
         numericSalary: parseInt(String(job.salary || job.salary_text).replace(/[^0-9]/g, '')) || 0,
-        // -----------------------
-
         category: job.category || 'Other',
         type: job.type || (job.title?.toLowerCase().includes('contract') ? 'Contract' : 'Full-time')
       }));
@@ -168,7 +162,8 @@ function JobBoardContent() {
   return (
     <main className="min-h-screen bg-[#f3f4f6]">
       <div className="relative bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white py-20 text-center">
-        <div className="max-w-7xl mx-auto px-4 relative z-10">
+        {/* FIX APPLIED HERE: Removed "relative z-10" so it doesn't overlap the mobile menu */}
+        <div className="max-w-7xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
               Find Your Next Remote Adventure
@@ -181,7 +176,7 @@ function JobBoardContent() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-3 p-4 bg-white rounded-lg shadow-xl border border-gray-200"
+            className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-3 p-4 bg-white rounded-lg shadow-xl border border-gray-200 relative z-0"
           >
             <div className="relative flex-1 w-full">
               <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -382,7 +377,6 @@ function JobBoardContent() {
   );
 }
 
-// 2. Wrap the logic in Suspense to fix the Vercel Build Error
 export default function Home() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f3f4f6] flex items-center justify-center">Loading job board...</div>}>

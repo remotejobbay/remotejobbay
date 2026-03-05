@@ -22,7 +22,6 @@ export default function MobileMenu() {
   // CLICK OUTSIDE TO CLOSE MENU
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      // If the menu is open, and the click happened outside our containerRef, close it
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -50,7 +49,7 @@ export default function MobileMenu() {
   };
 
   return (
-    <div className="sm:hidden" ref={containerRef}>
+    <div className="sm:hidden relative" ref={containerRef}>
       
       {/* CUSTOM ANIMATED HAMBURGER BUTTON */}
       <button 
@@ -78,37 +77,36 @@ export default function MobileMenu() {
         </div>
       </button>
 
-      {/* FULL SCREEN OVERLAY - Bumped to z-[999] */}
+      {/* RIGHT-ALIGNED FLOATING DROPDOWN MENU */}
       <div 
-        className={`fixed left-0 right-0 bottom-0 z-[999] bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out transform origin-top ${
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+        className={`absolute right-0 top-14 z-[9999] w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 transition-all duration-300 ease-in-out transform origin-top-right ${
+          isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
         }`}
-        style={{ top: '60px' }} // Adjust this to match your exact Navbar height
       >
-        <div className="flex flex-col h-full p-6 overflow-y-auto">
+        <div className="flex flex-col p-4 max-h-[85vh] overflow-y-auto">
           
           {/* USER PROFILE CARD */}
           {user && (
-            <div className="bg-blue-50 p-5 rounded-2xl mb-6 border border-blue-100 flex items-center gap-4 shadow-sm shrink-0">
-              <div className="bg-blue-200 text-blue-700 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
+            <div className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100 flex items-center gap-3 shadow-sm shrink-0">
+              <div className="bg-blue-200 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider">Signed in as</p>
-                <p className="text-blue-900 font-bold truncate text-sm">{user.email}</p>
+                <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wider">Signed in</p>
+                <p className="text-blue-900 font-bold truncate text-xs">{user.email}</p>
               </div>
             </div>
           )}
 
           {/* NAVIGATION LINKS */}
-          <nav className="flex flex-col space-y-2 shrink-0">
+          <nav className="flex flex-col space-y-1 shrink-0">
             <Link 
               href="/" 
               onClick={() => setIsOpen(false)}
-              className="group flex items-center gap-4 p-3 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
+              className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
             >
-              <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
-                <FaHome className="text-gray-500 group-hover:text-blue-500" />
+              <div className="bg-gray-100 group-hover:bg-white p-2 rounded-lg transition-colors">
+                <FaHome className="text-gray-500 group-hover:text-blue-500 text-sm" />
               </div>
               Home
             </Link>
@@ -116,10 +114,10 @@ export default function MobileMenu() {
             <Link 
               href="/about" 
               onClick={() => setIsOpen(false)}
-              className="group flex items-center gap-4 p-3 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
+              className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
             >
-              <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
-                <FaInfoCircle className="text-gray-500 group-hover:text-blue-500" />
+              <div className="bg-gray-100 group-hover:bg-white p-2 rounded-lg transition-colors">
+                <FaInfoCircle className="text-gray-500 group-hover:text-blue-500 text-sm" />
               </div>
               About Us
             </Link>
@@ -128,10 +126,10 @@ export default function MobileMenu() {
               <Link 
                 href="/auth" 
                 onClick={() => setIsOpen(false)}
-                className="group flex items-center gap-4 p-3 rounded-xl text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
+                className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
               >
-                <div className="bg-gray-100 group-hover:bg-white p-2.5 rounded-lg transition-colors">
-                  <FaSignInAlt className="text-gray-500 group-hover:text-blue-500" />
+                <div className="bg-gray-100 group-hover:bg-white p-2 rounded-lg transition-colors">
+                  <FaSignInAlt className="text-gray-500 group-hover:text-blue-500 text-sm" />
                 </div>
                 Login / Sign Up
               </Link>
@@ -139,10 +137,10 @@ export default function MobileMenu() {
           </nav>
 
           {/* ACTION BUTTONS */}
-          <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4 pb-8 shrink-0">
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3 shrink-0">
             <button
               onClick={handlePostJobClick}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-xl font-bold text-base shadow-md shadow-blue-200 flex items-center justify-center gap-2 active:scale-95 transition-transform"
             >
               <FaBriefcase /> Post a Job
             </button>
@@ -150,7 +148,7 @@ export default function MobileMenu() {
             {user && (
               <button
                 onClick={handleLogout}
-                className="w-full bg-red-50 text-red-500 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform border border-red-100 hover:bg-red-100"
+                className="w-full bg-red-50 text-red-500 p-3 rounded-xl font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform border border-red-100 hover:bg-red-100"
               >
                 <FaSignOutAlt /> Log Out
               </button>
