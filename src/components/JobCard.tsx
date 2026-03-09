@@ -6,7 +6,7 @@ import {
   FaStar,
   FaMapMarkerAlt,
   FaBriefcase,
-  FaTag, // 1. Added FaTag for the job category icon
+  FaTag, 
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { motion } from 'framer-motion';
@@ -57,7 +57,6 @@ export default function JobCard({
   };
 
   const displaySalary = () => {
-    // Check if salary is missing, '0', or matches 'not listed' (case-insensitive)
     if (
       !job.salary || 
       job.salary === '0' || 
@@ -66,12 +65,10 @@ export default function JobCard({
       return 'Competitive';
     }
     
-    // If it's a string that isn't a clean number (e.g., "$50k - $70k"), display it as-is
     if (typeof job.salary === 'string' && isNaN(Number(job.salary))) {
       return job.salary;
     }
     
-    // Format numeric salaries
     const amount = Number(job.salary).toLocaleString();
     return job.salaryType === 'hourly' ? `$${amount}/hr` : `$${amount}/yr`;
   };
@@ -87,20 +84,27 @@ export default function JobCard({
     >
       <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-5 items-start">
         
-        {/* 1. Job Logo */}
-        <div className="flex-shrink-0">
-          {!logoError && job.logo ? (
-            <img
-              src={job.logo}
-              alt={job.company}
-              onError={() => setLogoError(true)}
-              className="w-[60px] h-[60px] rounded-[8px] object-cover"
-            />
-          ) : (
-            <div className="w-[60px] h-[60px] flex items-center justify-center bg-[#dbeafe] text-[#2563eb] rounded-[8px] font-bold text-xl">
-              {job.company.charAt(0)}
-            </div>
-          )}
+        {/* 1. Job Logo & Mobile Date */}
+        <div className="flex justify-between items-start w-full md:w-auto">
+          <div className="flex-shrink-0">
+            {!logoError && job.logo ? (
+              <img
+                src={job.logo}
+                alt={job.company}
+                onError={() => setLogoError(true)}
+                className="w-[60px] h-[60px] rounded-[8px] object-cover"
+              />
+            ) : (
+              <div className="w-[60px] h-[60px] flex items-center justify-center bg-[#dbeafe] text-[#2563eb] rounded-[8px] font-bold text-xl">
+                {job.company.charAt(0)}
+              </div>
+            )}
+          </div>
+          
+          {/* Mobile-only Date (Opposite Logo) */}
+          <span className="md:hidden text-[#6b7280] text-[0.85rem] mt-1">
+            {postedLabel(job.datePosted)}
+          </span>
         </div>
 
         {/* 2. Job Info */}
@@ -121,7 +125,6 @@ export default function JobCard({
             <span className="flex items-center gap-1.5">
               <FaBriefcase className="text-[#6b7280]" /> {job.type}
             </span>
-            {/* 2. Added Job Category here */}
             {job.category && (
               <span className="flex items-center gap-1.5">
                 <FaTag className="text-[#6b7280]" /> {job.category}
@@ -159,8 +162,8 @@ export default function JobCard({
             </Link>
           </div>
           
-          {/* 3. Removed 'hidden md:block' so the date shows on all screen sizes */}
-          <span className="text-[#6b7280] text-[0.85rem] mt-auto">
+          {/* Desktop-only Date */}
+          <span className="hidden md:block text-[#6b7280] text-[0.85rem] mt-auto">
             {postedLabel(job.datePosted)}
           </span>
         </div>

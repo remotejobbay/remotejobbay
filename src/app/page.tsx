@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaCode, FaServer, FaPaintBrush, FaCogs, FaBox, FaChartLine, 
@@ -9,7 +10,7 @@ import {
   FaDatabase, FaBrain, FaBalanceScale, FaChalkboard, FaUsers, 
   FaLaptopCode, FaMobileAlt, FaShieldAlt, FaUserCog, FaBug, 
   FaBitcoin, FaHeartbeat, FaGamepad, FaCloud, FaUserTie,
-  FaChevronDown, FaSearch, FaGlobeAmericas
+  FaChevronDown, FaSearch, FaGlobeAmericas, FaEnvelope
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { useUser } from '@/context/UserContext';
@@ -49,6 +50,14 @@ const categories = [
 
 const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
+// Data for featured popular categories (counts removed)
+const popularCategories = [
+  { name: 'Fullstack', icon: FaLaptopCode },
+  { name: 'Design', icon: FaPaintBrush },
+  { name: 'Marketing', icon: FaBullhorn },
+  { name: 'Data Science', icon: FaDatabase }
+];
+
 type JobListItem = Job & {
   numericSalary: number;
 };
@@ -72,6 +81,11 @@ function JobBoardContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const jobListRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Email subscription state
+  const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState('');
 
   useEffect(() => {
     const categoryQuery = searchParams.get('category');
@@ -144,6 +158,12 @@ function JobBoardContent() {
     setCurrentPage(1);
   };
 
+  const handleFeaturedCategoryClick = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    setCurrentPage(1);
+    jobListRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const filteredJobs = useMemo(() => {
     return jobs.filter((j) => {
       const jobText = `${j.title} ${j.company} ${j.category}`.toLowerCase();
@@ -163,10 +183,30 @@ function JobBoardContent() {
   const paginatedJobs = filteredJobs.slice((currentPage - 1) * jobsPerPage, currentPage * jobsPerPage);
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubscribing(true);
+    setSubscribeMessage('');
+
+    try {
+      const { error } = await supabase.from('emails').insert([{ email }]);
+      if (error) throw error;
+      setSubscribeMessage('Subscribed successfully!');
+      setEmail('');
+    } catch (error) {
+      setSubscribeMessage('Error subscribing. Please try again.');
+      // Unpack the Supabase error object so it's readable in the console
+      console.error('Subscription error:', JSON.stringify(error, null, 2));
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#f3f4f6]">
+      {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white py-20 text-center">
-        {/* FIX APPLIED HERE: Removed "relative z-10" so it doesn't overlap the mobile menu */}
         <div className="max-w-7xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
@@ -201,11 +241,46 @@ function JobBoardContent() {
               Search
             </button>
           </motion.div>
+
+          {/* Email Subscription */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-8 max-w-md mx-auto"
+          >
+            <form onSubmit={handleSubscribe} className="flex items-center gap-2 bg-white p-2 rounded-md shadow-md border border-gray-200">
+              <FaEnvelope className="text-gray-400 ml-2" />
+              <input
+                type="email"
+                placeholder="Subscribe for job alerts"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 px-2 py-1 text-sm text-gray-800 focus:outline-none"
+                required
+              />
+              <button
+                type="submit"
+                disabled={subscribing}
+                className="px-4 py-1.5 bg-[#2563eb] text-white text-sm font-medium rounded-md hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
+              >
+                {subscribing ? 'Subscribing...' : 'Subscribe'}
+              </button>
+            </form>
+            {subscribeMessage && (
+              <p className={`mt-2 text-sm ${subscribeMessage.includes('Error') ? 'text-red-200' : 'text-green-200'}`}>
+                {subscribeMessage}
+              </p>
+            )}
+          </motion.div>
         </div>
       </div>
 
+      {/* Job Listings Section */}
       <div className="max-w-7xl mx-auto px-4 py-12" ref={jobListRef}>
         <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8">
+          
+          {/* Sidebar Filters */}
           <aside className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 lg:sticky lg:top-[85px] h-fit">
             <h3 className="text-lg font-bold text-gray-800 mb-5">Filters</h3>
             
@@ -297,6 +372,7 @@ function JobBoardContent() {
             </div>
           </aside>
 
+          {/* Job Results */}
           <div className="flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">
@@ -379,6 +455,59 @@ function JobBoardContent() {
           </div>
         </div>
       </div>
+
+      {/* Featured Job Categories Section */}
+      <section className="bg-white py-16 border-b border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-12">Popular Job Categories</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularCategories.map((cat, index) => (
+              <div 
+                key={index} 
+                className="bg-white border border-gray-100 rounded-xl p-8 flex flex-col items-center text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="w-16 h-16 rounded-full bg-blue-50 text-[#2563eb] flex items-center justify-center text-3xl mb-4">
+                  <cat.icon />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-6">{cat.name}</h3>
+                <button 
+                  onClick={() => handleFeaturedCategoryClick(cat.name)}
+                  className="mt-auto px-5 py-2 border-2 border-[#2563eb] text-[#2563eb] rounded-md hover:bg-[#2563eb] hover:text-white transition-colors text-sm font-semibold w-full"
+                >
+                  View Jobs
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Employer CTA Section */}
+      <section className="py-20 bg-[#f3f4f6]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-[#1e3a8a] rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
+            <div className="p-10 md:p-16 flex-1 flex flex-col justify-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">For Employers</h2>
+              <p className="text-blue-100 text-lg mb-8 max-w-lg leading-relaxed">
+                Looking to hire quality candidates? Post a job on JobConnect and reach thousands of top-tier professionals seeking their next great opportunity.
+              </p>
+              <div>
+                <Link href="/post" className="inline-block px-8 py-4 bg-white text-[#1e3a8a] rounded-md font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg active:scale-95">
+                  Post a Job Today
+                </Link>
+              </div>
+            </div>
+            <div className="hidden md:block md:w-2/5 relative">
+              <img 
+                src="/api/placeholder/400/300" 
+                alt="Hiring Manager" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a8a] to-transparent"></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -390,4 +519,3 @@ export default function Home() {
     </Suspense>
   );
 }
-

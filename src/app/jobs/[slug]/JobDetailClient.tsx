@@ -13,10 +13,11 @@ import {
   FaTags,
   FaChevronLeft,
   FaExternalLinkAlt,
+  FaEnvelope, 
 } from 'react-icons/fa';
 import { Job } from '@/types';
-import EmailSubscription from '@/components/EmailSubscription';
 import { supabase } from '@/utils/supabase/supabaseClient';
+
 type RawJob = {
   [key: string]: unknown;
   id?: string | number;
@@ -43,6 +44,11 @@ export default function JobDetailClient({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [similarJobs, setSimilarJobs] = useState<Job[]>([]);
   const [logoError, setLogoError] = useState(false);
+
+  // Email subscription state
+  const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState('');
 
   const normalizeJobData = (rawJob: RawJob): Job => {
     let finalSalary = 'Not specified';
@@ -136,6 +142,25 @@ export default function JobDetailClient({ slug }: { slug: string }) {
     localStorage.setItem('bookmarkedJobs', JSON.stringify(updated));
   };
 
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubscribing(true);
+    setSubscribeMessage('');
+
+    try {
+      const { error } = await supabase.from('emails').insert([{ email }]);
+      if (error) throw error;
+      setSubscribeMessage('Subscribed successfully!');
+      setEmail('');
+    } catch (error) {
+      setSubscribeMessage('Error subscribing. Please try again.');
+      console.error('Subscription error:', JSON.stringify(error, null, 2));
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6]">
       <div className="animate-pulse flex flex-col items-center">
@@ -153,7 +178,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
 
   return (
     <main className="bg-[#f3f4f6] min-h-screen pb-20 font-sans">
-      {/* 1. Header Navigation - Removed Apply Button */}
+      {/* Header Navigation */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-[0_2px_5px_rgba(0,0,0,0.1)]">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center text-[#6b7280] hover:text-[#2563eb] font-medium transition-colors">
@@ -211,7 +236,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
-              {/* 2. New Apply Section at the Bottom of Description */}
+              {/* Apply Section */}
               <div className="mt-12 pt-10 border-t border-slate-200 flex flex-col items-center text-center">
                 <h3 className="text-2xl font-bold text-[#1f2937] mb-6">Ready to join the team?</h3>
                 <a 
@@ -246,20 +271,47 @@ export default function JobDetailClient({ slug }: { slug: string }) {
           </div>
 
           {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-6">
-            <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)] sticky top-24">
-              <h3 className="text-lg font-bold text-[#1f2937] mb-6 border-b border-slate-100 pb-4">Job Details</h3>
-              <div className="space-y-6">
-                <DetailItem icon={<FaMoneyBillWave />} label="Salary Range" value={String(job.salary ?? 'Not specified')} />
-                <DetailItem icon={<FaTags />} label="Category" value={String(job.category ?? 'Other')} />
-                <DetailItem icon={<FaBriefcase />} label="Job Type" value={String(job.type ?? 'Full-time')} className="capitalize" />
-                <DetailItem icon={<FaMapMarkerAlt />} label="Location" value={String(job.location ?? 'Remote')} />
+          <aside className="lg:col-span-4">
+            {/* Added wrapper div here to make BOTH boxes sticky together */}
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+                <h3 className="text-lg font-bold text-[#1f2937] mb-6 border-b border-slate-100 pb-4">Job Details</h3>
+                <div className="space-y-6">
+                  <DetailItem icon={<FaMoneyBillWave />} label="Salary Range" value={String(job.salary ?? 'Not specified')} />
+                  <DetailItem icon={<FaTags />} label="Category" value={String(job.category ?? 'Other')} />
+                  <DetailItem icon={<FaBriefcase />} label="Job Type" value={String(job.type ?? 'Full-time')} className="capitalize" />
+                  <DetailItem icon={<FaMapMarkerAlt />} label="Location" value={String(job.location ?? 'Remote')} />
+                </div>
               </div>
-              {/* Note: The sidebar "Apply" button has been completely removed to force scrolling */}
-            </div>
-            
-            <div className="rounded-[8px] overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
-              <EmailSubscription />
+              
+              <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+                <h3 className="text-lg font-bold text-[#1f2937] mb-4">Get Similar Job Alerts</h3>
+                <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 bg-white p-2 rounded-md border border-gray-200">
+                    <FaEnvelope className="text-gray-400 ml-2" />
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 px-2 py-1 w-full text-sm text-gray-800 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={subscribing}
+                    className="w-full px-4 py-2.5 bg-[#2563eb] text-white text-sm font-medium rounded-md hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
+                  >
+                    {subscribing ? 'Subscribing...' : 'Subscribe'}
+                  </button>
+                </form>
+                {subscribeMessage && (
+                  <p className={`mt-3 text-sm font-medium text-center ${subscribeMessage.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                    {subscribeMessage}
+                  </p>
+                )}
+              </div>
             </div>
           </aside>
         </div>
@@ -279,4 +331,3 @@ function DetailItem({ icon, label, value, className = "" }: { icon: React.ReactN
     </div>
   );
 }
-
