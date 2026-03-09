@@ -8,10 +8,12 @@ import Script from 'next/script';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { FaRocket, FaCheckCircle } from 'react-icons/fa';
 
-// Tell TypeScript about PaystackPop
+// Tell TypeScript about PaystackPop without using 'any'
 declare global {
   interface Window {
-    PaystackPop: any;
+    PaystackPop: {
+      setup: (config: unknown) => { openIframe: () => void };
+    };
   }
 }
 
@@ -57,8 +59,9 @@ export default function PostJobPage() {
       amount: PAYSTACK_AMOUNT_IN_PESEWAS,
       currency: 'GHS',
       ref: new Date().getTime().toString(), // Generate a random reference
-      callback: async function (response: any) {
-        // Payment successful!
+      callback: async function (response: unknown) {
+        // Payment successful! (We cast response as unknown to satisfy the linter)
+        console.log('Payment successful. Reference:', response);
         try {
           const { error } = await supabase.from('jobs').insert([
             {
