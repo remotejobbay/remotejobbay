@@ -12,4 +12,6 @@ export type CommunityArticle = {
   bodyHtml?: string | null;
   tags: string[];
   imageUrl?: string | null;
+  featuredImageAlt?: string | null;
+  galleryImages?: string[];
 };
