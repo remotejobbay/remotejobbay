@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+﻿/* eslint-disable @next/next/no-img-element */
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -117,15 +117,17 @@ export default async function CommunityArticlePage({ params }: Props) {
                 <div>
                   <p className="font-bold text-slate-900">{article.author}</p>
                   <p className="text-slate-500 text-sm">
-                    {article.date} � {article.readTime}
+                    {article.date} • {article.readTime}
                   </p>
                 </div>
               </div>
 
-              <div className="prose prose-slate max-w-none text-lg leading-relaxed space-y-6">
-                {article.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
+              <div className="article-content text-lg leading-relaxed">
+                {article.bodyHtml ? (
+                  <div dangerouslySetInnerHTML={{ __html: article.bodyHtml }} />
+                ) : (
+                  article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+                )}
               </div>
 
               {article.tags.length > 0 && (

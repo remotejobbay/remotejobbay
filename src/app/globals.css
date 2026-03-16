@@ -39,3 +39,65 @@ body {
   .badge-blue   { @apply bg-blue-200   text-blue-800   px-2 py-1 rounded-full flex items-center gap-1; }
   .badge-purple { @apply bg-purple-200 text-purple-800 px-2 py-1 rounded-full; }
 }
+.article-content {
+  color: #334155;
+}
+
+.article-content > p {
+  margin-bottom: 1.5rem;
+}
+
+.article-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: #0f172a;
+}
+
+.article-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #0f172a;
+}
+
+.article-content a {
+  color: #b45309;
+  text-decoration: underline;
+}
+
+.article-content img {
+  width: 100%;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.article-content th,
+.article-content td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.article-content th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #f59e0b;
+  background: #fff7ed;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  font-style: italic;
+  color: #7c2d12;
+}
