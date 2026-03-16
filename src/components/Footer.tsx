@@ -7,27 +7,34 @@ export default function Footer() {
   return (
     <footer className="bg-[#1f2937] text-white mt-12 pt-[60px] pb-[20px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-        
-        {/* Logo and tagline */}
         <div>
           <Link
             href="/"
             className="text-xl font-semibold text-white hover:text-[#2563eb] font-sans transition-colors duration-200 flex items-center gap-2"
           >
-            🌍 RemoteJobBay
+            RemoteJobBay
           </Link>
           <p className="text-sm mt-4 text-white/80 font-medium leading-relaxed">
             Discover remote jobs from anywhere in the world.
           </p>
         </div>
 
-        {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold mb-5 text-white font-sans">Quick Links</h3>
           <ul className="space-y-3 text-sm">
             <li>
               <Link href="/" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
                 Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/remote-jobs" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Remote Jobs
+              </Link>
+            </li>
+            <li>
+              <Link href="/community" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
+                Community
               </Link>
             </li>
             <li>
@@ -48,7 +55,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Company Info */}
         <div>
           <h3 className="text-lg font-semibold mb-5 text-white font-sans">Company</h3>
           <ul className="space-y-3 text-sm">
@@ -64,13 +70,12 @@ export default function Footer() {
             </li>
             <li>
               <Link href="/legal" className="text-white/80 hover:text-white hover:pl-1.5 transition-all duration-300 block">
-                Terms & Privacy
+                Terms and Privacy
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Social Media */}
         <div>
           <h3 className="text-lg font-semibold mb-5 text-white font-sans">Follow Us</h3>
           <div className="flex gap-4">
@@ -105,10 +110,9 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Footer Bottom / Copyright */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="border-t border-white/10 pt-5 pb-2 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70">
-          <p>© {new Date().getFullYear()} RemoteJobBay. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} RemoteJobBay. All rights reserved.</p>
           <div className="flex gap-5">
             <Link href="/legal" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/legal" className="hover:text-white transition-colors">Terms of Service</Link>

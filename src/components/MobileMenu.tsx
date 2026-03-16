@@ -5,21 +5,21 @@ import Link from 'next/link';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/supabaseClient';
-import { 
-  FaHome, 
-  FaSignInAlt, 
-  FaSignOutAlt, 
-  FaBriefcase 
+import {
+  FaHome,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaBriefcase,
+  FaBookOpen,
 } from 'react-icons/fa';
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
   const router = useRouter();
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // CLICK OUTSIDE TO CLOSE MENU
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -50,26 +50,24 @@ export default function MobileMenu() {
 
   return (
     <div className="sm:hidden relative" ref={containerRef}>
-      
-      {/* CUSTOM ANIMATED HAMBURGER BUTTON */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className={`hamburger hamburger--parallel p-2 -mr-2 focus:outline-none flex items-center justify-center ${isOpen ? 'is-active' : ''}`}
         type="button"
         aria-label="Toggle Menu"
       >
         <div className="inner relative w-6 h-6 flex flex-col justify-between">
-          <span 
+          <span
             className={`bar h-[3px] w-full bg-blue-800 rounded transition-all duration-500 ease-in-out transform origin-center ${
               isOpen ? 'rotate-45 translate-y-[10px]' : ''
             }`}
           ></span>
-          <span 
+          <span
             className={`bar h-[3px] w-full bg-blue-800 rounded transition-all duration-300 ease-in-out ${
               isOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'
             }`}
           ></span>
-          <span 
+          <span
             className={`bar h-[3px] w-full bg-blue-800 rounded transition-all duration-500 ease-in-out transform origin-center ${
               isOpen ? '-rotate-45 -translate-y-[10px]' : ''
             }`}
@@ -77,15 +75,12 @@ export default function MobileMenu() {
         </div>
       </button>
 
-      {/* RIGHT-ALIGNED FLOATING DROPDOWN MENU */}
-      <div 
+      <div
         className={`absolute right-0 top-14 z-[9999] w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 transition-all duration-300 ease-in-out transform origin-top-right ${
           isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'
         }`}
       >
         <div className="flex flex-col p-4 max-h-[85vh] overflow-y-auto">
-          
-          {/* USER PROFILE CARD */}
           {user && (
             <div className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100 flex items-center gap-3 shadow-sm shrink-0">
               <div className="bg-blue-200 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold">
@@ -98,11 +93,9 @@ export default function MobileMenu() {
             </div>
           )}
 
-          {/* NAVIGATION LINKS */}
           <nav className="flex flex-col space-y-1 shrink-0">
-            {/* HOME */}
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               onClick={() => setIsOpen(false)}
               className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
             >
@@ -112,8 +105,18 @@ export default function MobileMenu() {
               Home
             </Link>
 
-            {/* POST A JOB (Now integrated in the list) */}
-            <button 
+            <Link
+              href="/community"
+              onClick={() => setIsOpen(false)}
+              className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
+            >
+              <div className="bg-gray-100 group-hover:bg-white p-2 rounded-lg transition-colors">
+                <FaBookOpen className="text-gray-500 group-hover:text-blue-500 text-sm" />
+              </div>
+              Community
+            </Link>
+
+            <button
               onClick={handlePostJobClick}
               className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100 text-left"
             >
@@ -123,10 +126,9 @@ export default function MobileMenu() {
               Post a Job
             </button>
 
-            {/* LOGIN / SIGN UP (Only if not logged in) */}
             {!user && (
-              <Link 
-                href="/auth" 
+              <Link
+                href="/auth"
                 onClick={() => setIsOpen(false)}
                 className="group flex items-center gap-3 p-3 rounded-xl text-base font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all border border-transparent hover:border-blue-100"
               >
@@ -138,7 +140,6 @@ export default function MobileMenu() {
             )}
           </nav>
 
-          {/* LOGOUT BUTTON (Only if logged in) */}
           {user && (
             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col shrink-0">
               <button
@@ -149,7 +150,6 @@ export default function MobileMenu() {
               </button>
             </div>
           )}
-
         </div>
       </div>
     </div>
