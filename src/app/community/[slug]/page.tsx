@@ -1,14 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCommunityArticleBySlug } from '../data';
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = await getCommunityArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const article = await getCommunityArticleBySlug(resolvedParams.slug);
   if (!article) return {};
 
   return {
@@ -24,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'RemoteJobBay',
       images: [
         {
-          url: 'https://www.remotejobbay.com/default-logo.png',
+          url: article.imageUrl || 'https://www.remotejobbay.com/default-logo.png',
           width: 1200,
           height: 630,
         },
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: article.title,
       description: article.excerpt,
-      images: ['https://www.remotejobbay.com/default-logo.png'],
+      images: [article.imageUrl || 'https://www.remotejobbay.com/default-logo.png'],
     },
   };
 }
@@ -44,7 +47,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const revalidate = 300;
 
 export default async function CommunityArticlePage({ params }: Props) {
-  const article = await getCommunityArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const article = await getCommunityArticleBySlug(resolvedParams.slug);
   if (!article) return notFound();
 
   const jsonLd = {
@@ -71,7 +75,7 @@ export default async function CommunityArticlePage({ params }: Props) {
 
   return (
     <main className="bg-slate-50 min-h-screen">
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         <Link href="/community" className="text-sm text-amber-700 font-semibold">
           Back to Community
         </Link>
@@ -89,6 +93,18 @@ export default async function CommunityArticlePage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {article.imageUrl && (
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white">
+            <img
+              src={article.imageUrl}
+              alt={article.title}
+              className="w-full h-[280px] md:h-[360px] object-cover"
+            />
+          </div>
+        </section>
+      )}
 
       <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <article className="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-sm space-y-6 text-slate-700 leading-relaxed">
@@ -131,7 +147,6 @@ export default async function CommunityArticlePage({ params }: Props) {
 
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
     </main>

@@ -12,6 +12,8 @@ type RawArticle = {
   author?: string;
   body?: string | string[];
   tags?: string[] | string;
+  image_url?: string;
+  cover_image?: string;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -48,9 +50,16 @@ const estimateReadTime = (body: string[]) => {
   return `${minutes} min read`;
 };
 
+const resolveImageUrl = (value?: string | null) => {
+  if (!value) return null;
+  if (value.startsWith('http')) return value;
+  return `${supabaseUrl}/storage/v1/object/public/${value.replace(/^\//, '')}`;
+};
+
 const normalizeArticle = (raw: RawArticle): CommunityArticle => {
   const body = normalizeBody(raw.body);
   const publishedAt = raw.published_at ?? null;
+  const imageUrl = resolveImageUrl(raw.image_url ?? raw.cover_image ?? null);
 
   return {
     id: String(raw.id ?? raw.slug ?? Math.random()),
@@ -64,6 +73,7 @@ const normalizeArticle = (raw: RawArticle): CommunityArticle => {
     author: raw.author ?? 'RemoteJobBay Team',
     body,
     tags: normalizeTags(raw.tags),
+    imageUrl,
   };
 };
 
