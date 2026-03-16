@@ -25,8 +25,8 @@ export default function ContactPage() {
     setLoading(false);
 
     if (error) {
-      console.error('❌ Error saving message:', error.message);
-      setError('❌ Something went wrong. Please try again.');
+      console.error('Error saving message:', error.message);
+      setError('Something went wrong. Please try again.');
       return;
     }
 
@@ -42,9 +42,12 @@ export default function ContactPage() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-teal-200/70"
       >
-        <h1 className="text-4xl font-extrabold mb-6 text-gray-800 text-center drop-shadow-md">
-          📧 Contact Us
+        <h1 className="text-4xl font-extrabold mb-4 text-gray-800 text-center drop-shadow-md">
+          Contact RemoteJobBay
         </h1>
+        <p className="text-center text-gray-600 mb-8">
+          Questions, feedback, or hiring needs? Send a message and we will get back to you soon.
+        </p>
 
         {submitted && (
           <motion.div
@@ -52,7 +55,7 @@ export default function ContactPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center shadow-md"
           >
-            ✅ Thank you for reaching out! We will get back to you shortly.
+            Thanks for reaching out. We will reply shortly.
           </motion.div>
         )}
 
@@ -75,7 +78,7 @@ export default function ContactPage() {
             <input
               type="text"
               name="name"
-              placeholder="Your Name"
+              placeholder="Your name"
               required
               value={form.name}
               onChange={handleChange}
@@ -91,7 +94,7 @@ export default function ContactPage() {
             <input
               type="email"
               name="email"
-              placeholder="Your Email"
+              placeholder="Your email"
               required
               value={form.email}
               onChange={handleChange}
@@ -106,7 +109,7 @@ export default function ContactPage() {
           >
             <textarea
               name="message"
-              placeholder="Your Message"
+              placeholder="How can we help?"
               required
               value={form.message}
               onChange={handleChange}
@@ -124,10 +127,17 @@ export default function ContactPage() {
               disabled={loading}
               className="w-full bg-gradient-to-r from-teal-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-teal-600 hover:to-indigo-700 shadow-lg disabled:opacity-70 transition-all duration-200"
             >
-              {loading ? 'Sending...' : 'Send Message'}
+              {loading ? 'Sending...' : 'Send message'}
             </button>
           </motion.div>
         </form>
+
+        <div className="mt-8 text-center text-sm text-gray-500">
+          Prefer email? Reach us at
+          <a className="ml-1 text-teal-700 font-semibold" href="mailto:support@remotejobbay.com">
+            support@remotejobbay.com
+          </a>.
+        </div>
       </motion.div>
     </main>
   );
