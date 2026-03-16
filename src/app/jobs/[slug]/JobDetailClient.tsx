@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -126,7 +128,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
     if (saved) {
       try {
         setBookmarked(JSON.parse(saved));
-      } catch (e) {
+      } catch {
         setBookmarked([]);
       }
     }

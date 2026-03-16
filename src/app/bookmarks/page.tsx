@@ -1,11 +1,13 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useState, useEffect } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Job } from '@/types';
-import { FaRegStar, FaStar } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { FaGlobe } from 'react-icons/fa6';
 import { createClient } from '@supabase/supabase-js';
 

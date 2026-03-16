@@ -4,6 +4,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Script from 'next/script';
 import type { Metadata } from 'next';
+import { Inter, Poppins } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-poppins' });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.remotejobbay.com'),
@@ -55,13 +59,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="bg-gradient-to-br from-teal-50 via-indigo-50 to-orange-50 text-gray-900 min-h-screen font-inter">
+      <body className={`${inter.variable} ${poppins.variable} bg-gradient-to-br from-teal-50 via-indigo-50 to-orange-50 text-gray-900 min-h-screen font-inter`}>
         <UserProvider>
           <div className="relative min-h-screen backdrop-blur-md bg-white/30">
             <Header />

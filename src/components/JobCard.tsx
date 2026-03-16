@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import Link from 'next/link';
 import {
   FaRegStar,
@@ -51,7 +53,7 @@ export default function JobCard({
       if (diff === 1) return '1 day ago';
       if (diff < 7) return `${diff} days ago`;
       return `${Math.floor(diff / 7)}w ago`;
-    } catch (e) {
+    } catch {
       return 'Recently';
     }
   };

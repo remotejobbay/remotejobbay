@@ -19,7 +19,7 @@ export default function AuthPage() {
 
     if (isLogin) {
       // Login logic
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -30,7 +30,7 @@ export default function AuthPage() {
       }
     } else {
       // Signup logic
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ email, password });
       if (error) setError(error.message);
       else {
         alert('Signup successful! Check your inbox to confirm your email.');
