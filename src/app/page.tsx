@@ -222,7 +222,7 @@ function JobBoardContent() {
               </motion.h1>
               <p className="mt-5 text-lg text-slate-600 max-w-2xl">
                 RemoteJobBay curates fully remote roles across engineering, design, product, marketing,
-                and support. Apply faster with clear eligibility and direct employer links.
+                support and many more. Apply faster with clear eligibility and direct employer links.
               </p>
 
               <motion.div
