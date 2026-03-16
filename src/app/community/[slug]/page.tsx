@@ -122,10 +122,12 @@ export default async function CommunityArticlePage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="prose prose-slate max-w-none text-lg leading-relaxed space-y-6">
-                {article.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
+              <div className="article-content text-lg leading-relaxed">
+                {article.bodyHtml ? (
+                  <div dangerouslySetInnerHTML={{ __html: article.bodyHtml }} />
+                ) : (
+                  article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+                )}
               </div>
 
               {article.tags.length > 0 && (

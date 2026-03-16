@@ -11,6 +11,7 @@ type RawArticle = {
   published_at?: string;
   author?: string;
   body?: string | string[];
+  body_html?: string;
   tags?: string[] | string;
   image_url?: string;
   cover_image?: string;
@@ -72,6 +73,7 @@ const normalizeArticle = (raw: RawArticle): CommunityArticle => {
     publishedAt,
     author: raw.author ?? 'RemoteJobBay Team',
     body,
+    bodyHtml: raw.body_html ?? null,
     tags: normalizeTags(raw.tags),
     imageUrl,
   };

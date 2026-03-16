@@ -9,6 +9,7 @@ export type CommunityArticle = {
   publishedAt: string | null;
   author: string;
   body: string[];
+  bodyHtml?: string | null;
   tags: string[];
   imageUrl?: string | null;
 };
