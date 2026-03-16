@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getCommunityArticles } from './data';
@@ -95,20 +97,36 @@ export default async function CommunityPage() {
               <Link
                 key={article.slug}
                 href={`/community/${article.slug}`}
-                className="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow"
+                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
               >
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-[0.2em]">
-                  {article.category}
-                </p>
-                <h2 className="mt-3 text-xl font-semibold text-slate-900 group-hover:text-amber-800 transition-colors">
-                  {article.title}
-                </h2>
-                <p className="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-3">
-                  {article.excerpt}
-                </p>
-                <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
-                  <span>{article.date}</span>
-                  <span>{article.readTime}</span>
+                <div className="relative h-44 bg-slate-100">
+                  {article.imageUrl ? (
+                    <img
+                      src={article.imageUrl}
+                      alt={article.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 uppercase tracking-[0.3em]">
+                      RemoteJobBay
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-[0.2em]">
+                    {article.category}
+                  </p>
+                  <h2 className="mt-3 text-xl font-semibold text-slate-900 group-hover:text-amber-800 transition-colors">
+                    {article.title}
+                  </h2>
+                  <p className="mt-3 text-sm text-slate-600 leading-relaxed line-clamp-3">
+                    {article.excerpt}
+                  </p>
+                  <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+                    <span>{article.date}</span>
+                    <span>{article.readTime}</span>
+                  </div>
                 </div>
               </Link>
             ))}

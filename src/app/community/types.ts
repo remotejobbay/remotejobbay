@@ -10,4 +10,5 @@ export type CommunityArticle = {
   author: string;
   body: string[];
   tags: string[];
+  imageUrl?: string | null;
 };
