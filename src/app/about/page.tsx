@@ -18,7 +18,7 @@ export default function AboutPage() {
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
             <h2 className="text-lg font-semibold text-slate-900">Why we exist</h2>
             <p className="mt-3 text-slate-600">
-              Too many "remote" listings still require specific countries or relocation. We built
+              Too many &quot;remote&quot; listings still require specific countries or relocation. We built
               RemoteJobBay to surface roles that are clear, transparent, and truly remote.
             </p>
           </div>

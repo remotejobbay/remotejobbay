@@ -9,7 +9,7 @@ export default function LegalPage() {
 
         <div className="space-y-6">
           <p>
-            Welcome to RemoteJobBay ("we," "us," "our"). By using
+            Welcome to RemoteJobBay (&quot;we,&quot; &quot;us,&quot; &quot;our&quot;). By using
             <Link href="https://www.remotejobbay.com" className="text-blue-600 underline mx-1" target="_blank">
               www.remotejobbay.com
             </Link>
