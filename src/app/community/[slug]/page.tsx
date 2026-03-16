@@ -4,11 +4,12 @@ import type { Metadata } from 'next';
 import { getCommunityArticleBySlug } from '../data';
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = await getCommunityArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const article = await getCommunityArticleBySlug(resolvedParams.slug);
   if (!article) return {};
 
   return {
@@ -44,7 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const revalidate = 300;
 
 export default async function CommunityArticlePage({ params }: Props) {
-  const article = await getCommunityArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const article = await getCommunityArticleBySlug(resolvedParams.slug);
   if (!article) return notFound();
 
   const jsonLd = {
