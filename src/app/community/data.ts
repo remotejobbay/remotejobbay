@@ -15,6 +15,8 @@ type RawArticle = {
   tags?: string[] | string;
   image_url?: string;
   cover_image?: string;
+  featured_image_alt?: string;
+  gallery_images?: string[];
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -57,10 +59,18 @@ const resolveImageUrl = (value?: string | null) => {
   return `${supabaseUrl}/storage/v1/object/public/${value.replace(/^\//, '')}`;
 };
 
+const resolveGalleryImages = (images?: string[] | null) => {
+  if (!images || images.length === 0) return [];
+  return images
+    .map((image) => resolveImageUrl(image))
+    .filter((image): image is string => Boolean(image));
+};
+
 const normalizeArticle = (raw: RawArticle): CommunityArticle => {
   const body = normalizeBody(raw.body);
   const publishedAt = raw.published_at ?? null;
   const imageUrl = resolveImageUrl(raw.image_url ?? raw.cover_image ?? null);
+  const galleryImages = resolveGalleryImages(raw.gallery_images ?? null);
 
   return {
     id: String(raw.id ?? raw.slug ?? Math.random()),
@@ -76,6 +86,8 @@ const normalizeArticle = (raw: RawArticle): CommunityArticle => {
     bodyHtml: raw.body_html ?? null,
     tags: normalizeTags(raw.tags),
     imageUrl,
+    featuredImageAlt: raw.featured_image_alt ?? null,
+    galleryImages,
   };
 };
 

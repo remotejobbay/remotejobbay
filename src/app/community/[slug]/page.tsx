@@ -60,6 +60,7 @@ export default async function CommunityArticlePage({ params }: Props) {
 
   const allArticles = await getCommunityArticles();
   const related = allArticles.filter((item) => item.slug !== article.slug).slice(0, 3);
+  const galleryImages = article.galleryImages ?? [];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -92,7 +93,7 @@ export default async function CommunityArticlePage({ params }: Props) {
             {article.imageUrl ? (
               <img
                 src={article.imageUrl}
-                alt={article.title}
+                alt={article.featuredImageAlt || article.title}
                 className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
@@ -129,6 +130,21 @@ export default async function CommunityArticlePage({ params }: Props) {
                   article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
                 )}
               </div>
+
+              {galleryImages.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {galleryImages.map((imageUrl, index) => (
+                    <div key={`${imageUrl}-${index}`} className="overflow-hidden rounded-xl border border-slate-200">
+                      <img
+                        src={imageUrl}
+                        alt={`${article.title} gallery ${index + 1}`}
+                        className="h-56 w-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-2">
@@ -174,7 +190,7 @@ export default async function CommunityArticlePage({ params }: Props) {
                           {item.imageUrl ? (
                             <img
                               src={item.imageUrl}
-                              alt={item.title}
+                              alt={item.featuredImageAlt || item.title}
                               className="h-full w-full object-cover"
                             />
                           ) : (
