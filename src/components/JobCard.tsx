@@ -77,6 +77,10 @@ export default function JobCard({
 
   const jobUrl = generateJobUrl(job.title, job.id);
 
+  const salaryText = displaySalary();
+  const salaryClass =
+    salaryText === 'Competitive' ? 'text-amber-700' : 'text-slate-800';
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
@@ -137,8 +141,8 @@ export default function JobCard({
 
         {/* 3. Job Actions */}
         <div className="flex flex-row md:flex-col justify-between items-center md:items-end h-full gap-2">
-          <div className="text-[#10b981] font-bold text-[1rem] whitespace-nowrap">
-            {displaySalary()}
+          <div className={`font-bold text-[1rem] whitespace-nowrap ${salaryClass}`}>
+            {salaryText}
           </div>
           
           <div className="flex items-center gap-3">
@@ -158,7 +162,7 @@ export default function JobCard({
             
             <Link
               href={jobUrl}
-              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 rounded-[8px] font-semibold text-[0.95rem] transition-colors"
+              className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-[8px] font-semibold text-[0.95rem] transition-colors"
             >
               Details
             </Link>

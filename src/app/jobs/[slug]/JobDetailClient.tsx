@@ -202,7 +202,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="grid lg:grid-cols-12 gap-10">
           <div className="lg:col-span-8 space-y-8">
-            <section className="bg-white border border-slate-200 rounded-[8px] p-8 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+            <section className="bg-white border border-slate-200 rounded-xl p-8">
               <div className="flex flex-col md:flex-row md:items-start gap-6 mb-8">
                 {job.logo && !logoError ? (
                   <img
@@ -245,7 +245,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
                   href={job.applyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-10 py-4 rounded-[8px] font-bold text-[1.1rem] flex items-center gap-3 transition-all duration-300 shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_15px_rgba(0,0,0,0.1)] hover:-translate-y-[2px]"
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-10 py-4 rounded-[8px] font-bold text-[1.1rem] flex items-center gap-3 transition-all duration-300 shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_15px_rgba(0,0,0,0.1)] hover:-translate-y-[2px]"
                 >
                   Apply for this position <FaExternalLinkAlt className="text-sm" />
                 </a>
@@ -264,7 +264,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
                       <Link
                         key={simId}
                         href={`/jobs/${sim.slug || sim.id}`}
-                        className="block group bg-white border border-transparent p-5 rounded-[8px] hover:border-[#2563eb] transition-all shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:-translate-y-[3px]"
+                        className="block group bg-white border border-slate-200 p-5 rounded-lg hover:border-[#2563eb] transition-colors"
                       >
                         <div className="flex items-start gap-4">
                           {sim.logo && !simLogoFailed ? (
@@ -301,9 +301,15 @@ export default function JobDetailClient({ slug }: { slug: string }) {
 
           <aside className="lg:col-span-4">
             <div className="sticky top-24 space-y-6">
-              <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
-                <h3 className="text-lg font-bold text-[#1f2937] mb-6 border-b border-slate-100 pb-4">Job Details</h3>
-                <div className="space-y-6">
+              <div className="p-2">
+                <div className="pl-5 border-l-2 border-amber-300/80">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-[0.7rem] tracking-[0.35em] uppercase text-amber-700 font-semibold">Role Snapshot</span>
+                    <span className="h-px flex-1 bg-amber-200/70"></span>
+                  </div>
+                  <h3 className="text-2xl font-serif font-semibold text-[#1f2937] mb-8">Job Details</h3>
+                </div>
+                <div className="space-y-6 pl-5 border-l-2 border-slate-100">
                   <DetailItem icon={<FaMoneyBillWave />} label="Salary Range" value={String(job.salary ?? 'Not specified')} />
                   <DetailItem icon={<FaTags />} label="Category" value={String(job.category ?? 'Other')} />
                   <DetailItem icon={<FaBriefcase />} label="Job Type" value={String(job.type ?? 'Full-time')} className="capitalize" />
@@ -311,7 +317,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-[8px] p-6 shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+              <div className="bg-white border border-slate-200 rounded-xl p-6">
                 <h3 className="text-lg font-bold text-[#1f2937] mb-4">Get Similar Job Alerts</h3>
                 <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
                   <div className="flex items-center gap-2 bg-white p-2 rounded-md border border-gray-200">
@@ -350,10 +356,12 @@ export default function JobDetailClient({ slug }: { slug: string }) {
 function DetailItem({ icon, label, value, className = '' }: { icon: React.ReactNode, label: string, value: string, className?: string }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="text-[#6b7280] mt-1 text-lg">{icon}</div>
+      <div className="h-11 w-11 rounded-full bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-lg shrink-0">
+        {icon}
+      </div>
       <div>
-        <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wider mb-1">{label}</p>
-        <p className={`text-[#1f2937] font-medium ${className}`}>{value}</p>
+        <p className="text-[0.7rem] font-semibold text-[#6b7280] uppercase tracking-[0.25em] mb-1">{label}</p>
+        <p className={`text-[#1f2937] font-semibold text-lg ${className}`}>{value}</p>
       </div>
     </div>
   );
