@@ -1,9 +1,12 @@
-'use client';
+﻿'use client';
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import {
   FaStar,
   FaRegStar,
@@ -16,6 +19,7 @@ import {
   FaChevronLeft,
   FaExternalLinkAlt,
   FaEnvelope,
+  FaShareAlt,
 } from 'react-icons/fa';
 import { Job } from '@/types';
 import { supabase } from '@/utils/supabase/supabaseClient';
@@ -27,6 +31,7 @@ type RawJob = {
   company?: string;
   location?: string;
   description?: string;
+  description_html?: string;
   logo?: string;
   apply_url?: string;
   applyUrl?: string;
@@ -51,6 +56,110 @@ export default function JobDetailClient({ slug }: { slug: string }) {
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribeMessage, setSubscribeMessage] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
+
+  const markdownSchema = useMemo(() => {
+    const baseTags = defaultSchema.tagNames ?? [];
+    return {
+      ...defaultSchema,
+      tagNames: Array.from(new Set([
+        ...baseTags,
+        'table',
+        'thead',
+        'tbody',
+        'tfoot',
+        'tr',
+        'th',
+        'td',
+        'mark',
+        'hr',
+        'span',
+      ])),
+      attributes: {
+        ...defaultSchema.attributes,
+        a: [...(defaultSchema.attributes?.a || []), 'target', 'rel'],
+        th: ['align'],
+        td: ['align'],
+        span: ['data-font'],
+      },
+    };
+  }, []);
+
+  const autoFormatDescription = (input: string) => {
+    const text = input.replace(/\r\n/g, '\n').trim();
+    if (!text) return '';
+
+    const hasMarkdown = /(^|\n)\s{0,3}(#{1,6}\s|\- |\* |\d+\.\s|> |\[.+\]\(.+\))/m.test(text);
+    if (hasMarkdown) return text;
+
+    const lines = text.split('\n').map((line) => line.trim());
+    const output: string[] = [];
+    let inList = false;
+    let lastHeadingLevel = 2;
+
+    const isShortTitle = (line: string) => {
+      if (!line) return false;
+      if (line.length > 60) return false;
+      if (/[.!?]$/.test(line)) return false;
+      const words = line.split(/\s+/);
+      if (words.length > 8) return false;
+      const capitalized = words.filter((word) => /^[A-Z0-9][\w&/-]*$/.test(word));
+      return capitalized.length >= Math.max(1, Math.floor(words.length * 0.6));
+    };
+
+    const pushParagraph = (line: string) => {
+      if (!line) return;
+      output.push(line);
+      output.push('');
+    };
+
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      const next = lines[i + 1] || '';
+
+      if (!line) {
+        if (inList) {
+          output.push('');
+          inList = false;
+        }
+        continue;
+      }
+
+      const bullet = /^(\-|\*|•|\d+\.)\s+/.test(line);
+      if (bullet) {
+        inList = true;
+        output.push(line.replace(/^•\s+/, '- '));
+        continue;
+      }
+
+      if (line.endsWith(':')) {
+        if (inList) {
+          output.push('');
+          inList = false;
+        }
+        const level = output.length === 0 ? 1 : lastHeadingLevel;
+        output.push(`${'#'.repeat(level)} ${line.replace(/:$/, '')}`);
+        output.push('');
+        lastHeadingLevel = Math.min(3, level + 1);
+        continue;
+      }
+
+      if (isShortTitle(line)) {
+        if (inList) {
+          output.push('');
+          inList = false;
+        }
+        const level = output.length === 0 ? 1 : 2;
+        output.push(`${'#'.repeat(level)} ${line}`);
+        output.push('');
+        continue;
+      }
+
+      pushParagraph(line);
+    }
+
+    return output.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  };
 
   const normalizeJobData = (rawJob: RawJob): Job => {
     let finalSalary = 'Not specified';
@@ -69,6 +178,7 @@ export default function JobDetailClient({ slug }: { slug: string }) {
       company: rawJob.company || 'Unknown Company',
       location: rawJob.location || 'Remote',
       description: rawJob.description || 'No description available.',
+      description_html: rawJob.description_html,
       logo: rawJob.logo,
       applyUrl: rawJob.apply_url || rawJob.applyUrl || '#',
       datePosted: rawJob.created_at || rawJob.datePosted || new Date().toISOString(),
@@ -169,6 +279,48 @@ export default function JobDetailClient({ slug }: { slug: string }) {
     }
   };
 
+  const handleShare = async () => {
+    if (!job) return;
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareTitle = `${job.title} at ${job.company}`;
+    const shareText = `Check out this job: ${shareTitle}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+        setShareMessage('Shared successfully.');
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareMessage('Link copied to clipboard.');
+        return;
+      }
+
+      setShareMessage('Sharing not supported on this browser.');
+    } catch (error) {
+      console.error('Share error:', error);
+      setShareMessage('Unable to share. Please try again.');
+    }
+  };
+
+  useEffect(() => {
+    if (!shareMessage) return;
+    const timer = setTimeout(() => setShareMessage(''), 2500);
+    return () => clearTimeout(timer);
+  }, [shareMessage]);
+
+  const markdownText = useMemo(() => {
+    if (typeof job?.description_html === 'string' && job.description_html.trim().length > 0) {
+      return job.description_html.trim();
+    }
+    if (typeof job?.description === 'string' && job.description.trim().length > 0) {
+      return autoFormatDescription(job.description);
+    }
+    return 'No description available.';
+  }, [job?.description, job?.description_html]);
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3f4f6]">
       <div className="animate-pulse flex flex-col items-center">
@@ -180,10 +332,6 @@ export default function JobDetailClient({ slug }: { slug: string }) {
 
   if (!job) return <div className="p-20 text-center">Job not found.</div>;
 
-  const paragraphs = typeof job.description === 'string'
-    ? job.description.split('\n').filter((p) => p.trim() !== '')
-    : [];
-
   return (
     <main className="bg-[#f3f4f6] min-h-screen pb-20 font-sans">
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-[0_2px_5px_rgba(0,0,0,0.1)]">
@@ -192,11 +340,24 @@ export default function JobDetailClient({ slug }: { slug: string }) {
             <FaChevronLeft className="mr-2 text-xs" /> Back to Search
           </Link>
           <div className="flex gap-3">
+            <button
+              onClick={handleShare}
+              className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors text-slate-500"
+              aria-label="Share job"
+              title="Share job"
+            >
+              <FaShareAlt />
+            </button>
             <button onClick={toggleBookmark} className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors">
               {bookmarked.includes(String(job.id)) ? <FaStar className="text-yellow-500" /> : <FaRegStar className="text-slate-400" />}
             </button>
           </div>
         </div>
+        {shareMessage && (
+          <div className="max-w-6xl mx-auto px-4 pb-3">
+            <p className="text-sm text-slate-600">{shareMessage}</p>
+          </div>
+        )}
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-10">
@@ -232,11 +393,39 @@ export default function JobDetailClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
-              <div className="prose prose-slate max-w-none border-t border-slate-100 pt-8">
-                <h3 className="text-xl font-bold text-[#1f2937] mb-4">About the role</h3>
-                <div className="space-y-4 text-[#1f2937] leading-[1.7] text-lg">
-                  {paragraphs.map((para, i) => <p key={i}>{para}</p>)}
-                </div>
+              <div className="prose prose-slate max-w-none border-t border-slate-100 pt-8 text-[#1f2937] text-lg leading-[1.75]">
+                <ReactMarkdown
+                  rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSchema]]}
+                  components={{
+                    h1: (props) => <h2 className="text-3xl font-serif font-semibold text-[#111827] mt-8 mb-4" {...props} />,
+                    h2: (props) => <h3 className="text-2xl font-serif font-semibold text-[#111827] mt-6 mb-3" {...props} />,
+                    h3: (props) => <h4 className="text-xl font-serif font-semibold text-[#111827] mt-5 mb-2" {...props} />,
+                    p: (props) => <p className="my-4" {...props} />,
+                    ul: (props) => <ul className="my-4 list-disc pl-6" {...props} />,
+                    ol: (props) => <ol className="my-4 list-decimal pl-6" {...props} />,
+                    li: (props) => <li className="my-1" {...props} />,
+                    a: (props) => <a className="text-[#2563eb] underline underline-offset-4" target="_blank" rel="noopener noreferrer" {...props} />,
+                    strong: (props) => <strong className="text-[#111827] font-semibold" {...props} />,
+                    blockquote: (props) => <blockquote className="border-l-4 border-slate-200 pl-4 italic text-slate-700" {...props} />,
+                    mark: (props) => <mark className="bg-amber-100 text-[#111827] px-1 py-0.5 rounded-sm" {...props} />,
+                    table: (props) => <table className="my-6 w-full border-collapse text-left" {...props} />,
+                    th: (props) => <th className="border-b border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-[#111827]" {...props} />,
+                    td: (props) => <td className="border-b border-slate-100 px-3 py-2 text-sm text-[#111827]" {...props} />,
+                    span: ({ node, ...props }) => {
+                      const font = (node?.properties?.['data-font'] as string | undefined) ?? '';
+                      const className = font === 'serif'
+                        ? 'font-serif'
+                        : font === 'mono'
+                          ? 'font-mono'
+                          : font === 'display'
+                            ? 'font-serif tracking-wide'
+                            : '';
+                      return <span className={className} {...props} />;
+                    },
+                  }}
+                >
+                  {markdownText}
+                </ReactMarkdown>
               </div>
 
               <div className="mt-12 pt-10 border-t border-slate-200 flex flex-col items-center text-center">
@@ -366,3 +555,4 @@ function DetailItem({ icon, label, value, className = '' }: { icon: React.ReactN
     </div>
   );
 }
+

@@ -13,6 +13,7 @@ export type Job = {
   
   // ✅ Optional: List views usually don't need the full text, only the Job Detail page does
   description?: string; 
+  description_html?: string;
   
   // ✅ Optional: Default to a placeholder icon if the scraper fails to find a logo
   logo?: string; 
