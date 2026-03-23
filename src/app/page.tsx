@@ -16,7 +16,7 @@ type JobListItem = {
   salaryType?: string;
   applyUrl?: string;
   created_at?: string;
-  datePosted?: string;
+  datePosted: string;
   logo?: string;
   numericSalary: number;
 };
