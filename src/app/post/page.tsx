@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import Script from 'next/script';
 import { supabase } from '@/utils/supabase/supabaseClient';
 import { FaRocket, FaCheckCircle } from 'react-icons/fa';
+import landingFilters from '@/data/landing-filters.json';
 
 // Tell TypeScript about PaystackPop without using 'any'
 declare global {
@@ -39,6 +40,8 @@ export default function PostJobPage() {
     description: '',
     application_url: '',
     contact_email: '',
+    experience_level: 'entry',
+    skills: '',
   });
 
   useEffect(() => {
@@ -49,6 +52,22 @@ export default function PostJobPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const normalizeSkills = (raw: string) => {
+    const tokens = raw
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean)
+      .map((value) =>
+        value
+          .replace(/&/g, 'and')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, ''),
+      )
+      .filter(Boolean);
+
+    return Array.from(new Set(tokens));
   };
 
   // 1. Handle the Paystack Inline Popup
@@ -72,6 +91,8 @@ export default function PostJobPage() {
               description: formData.description,
               apply_url: formData.application_url,
               contact_email: formData.contact_email,
+              experience_level: formData.experience_level,
+              skills: normalizeSkills(formData.skills),
               post_to_site: false, // Pending review
             },
           ]);
@@ -194,6 +215,42 @@ export default function PostJobPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Job Description <span className="text-red-500">*</span></label>
                 <textarea required name="description" value={formData.description} onChange={handleChange} rows={6} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-transparent outline-none transition-all resize-y" placeholder="Describe the role, responsibilities, and requirements..."></textarea>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Experience Level</label>
+                  <select
+                    name="experience_level"
+                    value={formData.experience_level}
+                    onChange={(e) => setFormData({ ...formData, experience_level: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-transparent outline-none transition-all bg-white"
+                  >
+                    <option value="entry">Entry Level</option>
+                    <option value="mid">Mid Level</option>
+                    <option value="senior">Senior Level</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Skills</label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-transparent outline-none transition-all"
+                    placeholder="e.g. python, data-science, aws"
+                    list="skills-list"
+                  />
+                  <datalist id="skills-list">
+                    {landingFilters.skills.map((skill) => (
+                      <option key={skill} value={skill} />
+                    ))}
+                  </datalist>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Use comma-separated skill slugs (lowercase). These power your SEO landing pages.
+                  </p>
+                </div>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">

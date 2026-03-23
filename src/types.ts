@@ -32,6 +32,10 @@ export type Job = {
   // SEO friendly URL (e.g., /jobs/senior-react-developer)
   slug?: string; 
 
+  // Optional: search landing pages
+  skills?: string[];
+  experience_level?: 'entry' | 'mid' | 'senior' | string;
+
   // --- DATABASE SPECIFIC FIELDS ---
   
   // ✅ CRITICAL: Used to filter jobs on the homepage (approved vs pending)

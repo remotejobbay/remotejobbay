@@ -1,0 +1,89 @@
+{
+  "minJobsToIndex": 5,
+  "jobsPerPage": 25,
+  "categories": [
+    "Frontend",
+    "Backend",
+    "Fullstack",
+    "Mobile Development",
+    "Design",
+    "DevOps",
+    "Cloud & SysAdmin",
+    "Cybersecurity",
+    "Data Science",
+    "AI & Machine Learning",
+    "Product",
+    "Project Management",
+    "Marketing",
+    "Sales",
+    "Customer Support",
+    "Finance",
+    "Accounting",
+    "Human Resources",
+    "Legal",
+    "Writing",
+    "Education",
+    "Healthcare",
+    "Web3 & Crypto",
+    "Gaming",
+    "Virtual Assistant",
+    "QA Engineer",
+    "Engineering Management"
+  ],
+  "jobTypes": [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Freelance",
+    "Internship"
+  ],
+  "skills": [
+    "python",
+    "javascript",
+    "typescript",
+    "react",
+    "node",
+    "java",
+    "go",
+    "csharp",
+    "php",
+    "ruby",
+    "swift",
+    "kotlin",
+    "sql",
+    "aws",
+    "gcp",
+    "azure",
+    "docker",
+    "kubernetes",
+    "data-science",
+    "machine-learning",
+    "devops",
+    "product-management",
+    "ui-ux",
+    "design",
+    "marketing",
+    "sales",
+    "customer-support",
+    "cybersecurity",
+    "qa",
+    "blockchain"
+  ],
+  "experienceLevels": [
+    {
+      "label": "Entry Level",
+      "value": "entry",
+      "slugs": ["entry", "no-experience"]
+    },
+    {
+      "label": "Mid Level",
+      "value": "mid",
+      "slugs": ["mid", "mid-level"]
+    },
+    {
+      "label": "Senior Level",
+      "value": "senior",
+      "slugs": ["senior", "senior-level"]
+    }
+  ]
+}
