@@ -277,7 +277,7 @@ export default async function Home({
             </Link>
           </div>
         ) : (
-          pageJobs.map((job) => <JobCardStatic key={String(job.id)} job={job} />)
+          pageJobs.map((job) => <JobCardStatic key={String(job.id)} job={job} showBookmark />)
         )}
       </section>
 

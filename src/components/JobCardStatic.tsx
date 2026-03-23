@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FaMapMarkerAlt, FaBriefcase, FaTag } from 'react-icons/fa';
 import type { Job } from '@/types';
+import BookmarkButton from '@/components/BookmarkButton';
 
 const generateJobUrl = (title: string, id: string | number) => {
   if (!title) return `/jobs/${id}`;
@@ -24,7 +25,20 @@ const formatSalary = (job: Job) => {
   return job.salaryType === 'hourly' ? `$${amount}/hr` : `$${amount}/yr`;
 };
 
-export default function JobCardStatic({ job }: { job: Job }) {
+const postedLabel = (d: string) => {
+  try {
+    const diff = Math.floor((Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24));
+    if (isNaN(diff)) return 'Recently';
+    if (diff <= 0) return 'Today';
+    if (diff === 1) return '1 day ago';
+    if (diff < 7) return `${diff} days ago`;
+    return `${Math.floor(diff / 7)}w ago`;
+  } catch {
+    return 'Recently';
+  }
+};
+
+export default function JobCardStatic({ job, showBookmark = false }: { job: Job; showBookmark?: boolean }) {
   const jobUrl = generateJobUrl(job.title, job.id);
   const salaryText = formatSalary(job);
   const salaryClass = salaryText === 'Competitive' ? 'text-amber-700' : 'text-slate-800';
@@ -46,6 +60,9 @@ export default function JobCardStatic({ job }: { job: Job }) {
               </div>
             )}
           </div>
+          <span className="md:hidden text-[#6b7280] text-[0.85rem] mt-1">
+            {postedLabel(job.datePosted)}
+          </span>
         </div>
 
         <div className="min-w-0">
@@ -77,12 +94,18 @@ export default function JobCardStatic({ job }: { job: Job }) {
           <div className={`font-bold text-[1rem] whitespace-nowrap ${salaryClass}`}>
             {salaryText}
           </div>
-          <Link
-            href={jobUrl}
-            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-[8px] font-semibold text-[0.95rem] transition-colors"
-          >
-            Details
-          </Link>
+          <div className="flex items-center gap-3">
+            {showBookmark && <BookmarkButton jobId={job.id} />}
+            <Link
+              href={jobUrl}
+              className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-[8px] font-semibold text-[0.95rem] transition-colors"
+            >
+              Details
+            </Link>
+          </div>
+          <span className="hidden md:block text-[#6b7280] text-[0.85rem] mt-auto">
+            {postedLabel(job.datePosted)}
+          </span>
         </div>
       </div>
     </article>
