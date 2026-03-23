@@ -313,7 +313,7 @@ function JobBoardContent() {
                   href="/remote-jobs"
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-amber-700 text-amber-800 font-semibold hover:bg-amber-50 transition-colors"
                 >
-                  SEO landing page
+                  Explore Remote Jobs
                 </Link>
                 <Link
                   href="/community"
