@@ -218,7 +218,7 @@ function JobBoardContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight"
               >
-                Find remote roles that respect your location and time zone
+                Discover fully remote jobs you can do from any country, no location limits
               </motion.h1>
               <p className="mt-5 text-lg text-slate-600 max-w-2xl">
                 RemoteJobBay curates fully remote roles across engineering, design, product, marketing,
