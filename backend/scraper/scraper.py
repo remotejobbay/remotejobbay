@@ -1,7 +1,9 @@
 import os
 import feedparser
 import re
+import requests
 from datetime import datetime
+from urllib.parse import urljoin, urlparse
 from supabase import create_client, Client
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup 
@@ -34,6 +36,14 @@ RSS_FEEDS = [
     {"url": "https://remote.co/feed/", "source": "Remote.co", "domain": "remote.co"},
 ]
 
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    )
+}
+
 # --- 3. HELPER FUNCTIONS ---
 
 def clean_html(html_content):
@@ -41,9 +51,152 @@ def clean_html(html_content):
     if not isinstance(html_content, str): return str(html_content)
     try:
         soup = BeautifulSoup(html_content, "html.parser")
-        return soup.get_text(separator=" ")[:5000].strip()
+        text = soup.get_text(separator="\n")
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        text = re.sub(r"[ \t]+", " ", text)
+        return text.strip()
     except:
-        return str(html_content)[:5000]
+        return str(html_content)
+
+def get_entry_html(entry):
+    if hasattr(entry, "content") and len(entry.content) > 0:
+        return entry.content[0].get("value", "")
+    return getattr(entry, "summary", "")
+
+def strip_weworkremotely_boilerplate(text):
+    text = re.sub(
+        r"^\s*Headquarters:\s*.*?\bURL:\s*\S+\s*",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    text = re.sub(
+        r"\s*To apply:\s*\S+\s*$",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return text.strip()
+
+def fetch_job_page(url):
+    if not url:
+        return None
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=20)
+        response.raise_for_status()
+        return BeautifulSoup(response.text, "html.parser")
+    except Exception as e:
+        print(f"   ⚠️ Could not fetch job page: {e}")
+        return None
+
+def remove_page_noise(soup):
+    for selector in ["script", "style", "noscript", "nav", "footer", "header"]:
+        for node in soup.select(selector):
+            node.decompose()
+
+def extract_full_description_html(soup, source):
+    if not soup:
+        return ""
+
+    remove_page_noise(soup)
+
+    selectors_by_source = {
+        "WeWorkRemotely": [
+            "#job-listing-show-container .listing-container",
+            "#job-listing-show-container",
+            ".listing-container",
+        ],
+        "RemoteOK": [".description", ".job-description", "td.company_and_position"],
+        "Remotive": [".job-description", ".job-description-content", "article"],
+        "WorkingNomads": [".job-description", ".job-content", "article"],
+        "Jobspresso": [".job_description", ".job-description", "article"],
+        "NoDesk": [".job-content", ".job-description", "article"],
+        "DailyRemote": [".job-description", ".job-detail", "article"],
+        "Remote.co": [".job_description", ".job-description", "article"],
+    }
+
+    generic_selectors = [
+        "[class*='job-description']",
+        "[class*='job_description']",
+        "[class*='job-detail']",
+        "[class*='job-content']",
+        "article",
+        "main",
+    ]
+
+    for selector in selectors_by_source.get(source, []) + generic_selectors:
+        container = soup.select_one(selector)
+        if container and len(container.get_text(" ", strip=True)) > 120:
+            return container.decode_contents().strip()
+
+    return ""
+
+def is_same_domain_or_subdomain(url, domain):
+    if not url or not domain:
+        return False
+    host = urlparse(url).netloc.lower()
+    domain = domain.lower()
+    return host == domain or host.endswith(f".{domain}")
+
+def follow_redirect(url):
+    if not url:
+        return ""
+    try:
+        response = requests.get(url, headers=HEADERS, allow_redirects=True, timeout=20)
+        return response.url or url
+    except Exception:
+        return url
+
+def resolve_direct_apply_url(job_board_url, soup, source_domain):
+    if not job_board_url:
+        return ""
+
+    if not soup:
+        return follow_redirect(job_board_url)
+
+    apply_selectors = [
+        "a#job-cta-alt[href]",
+        "a#job-cta-alt-2[href]",
+        "a.apply_button[href]",
+        "a.apply-button[href]",
+        "a.apply-now[href]",
+        "a[href*='apply'][href]",
+        "a[href*='greenhouse.io'][href]",
+        "a[href*='lever.co'][href]",
+        "a[href*='workable.com'][href]",
+        "a[href*='ashbyhq.com'][href]",
+        "a[href*='bamboohr.com'][href]",
+        "a[href*='smartrecruiters.com'][href]",
+        "a[href*='jobvite.com'][href]",
+    ]
+
+    candidates = []
+    for selector in apply_selectors:
+        for anchor in soup.select(selector):
+            href = anchor.get("href")
+            if not href:
+                continue
+            text = anchor.get_text(" ", strip=True).lower()
+            absolute_url = urljoin(job_board_url, href)
+            if "apply" in text or "apply" in absolute_url.lower():
+                candidates.append(absolute_url)
+
+    if not candidates:
+        for anchor in soup.find_all("a", href=True):
+            text = anchor.get_text(" ", strip=True).lower()
+            href = anchor.get("href", "")
+            if any(word in text for word in ["apply", "apply now", "submit application"]):
+                candidates.append(urljoin(job_board_url, href))
+
+    for candidate in candidates:
+        resolved = follow_redirect(candidate)
+        if resolved and not is_same_domain_or_subdomain(resolved, source_domain):
+            return resolved
+
+    if candidates:
+        return follow_redirect(candidates[0])
+
+    return follow_redirect(job_board_url)
 
 def get_logo_url(company_name, source_domain):
     if company_name and company_name.lower() != "unknown":
@@ -103,8 +256,21 @@ def process_feeds():
                     parts = title.split(":")
                     if len(parts) > 1: company = parts[0].strip()
 
-                # Get description safely
-                desc = getattr(entry, 'summary', getattr(entry, 'content', [{'value': ''}])[0].get('value', ''))
+                job_page_soup = fetch_job_page(link)
+                direct_apply_url = resolve_direct_apply_url(
+                    link,
+                    job_page_soup,
+                    feed_source["domain"],
+                )
+
+                # Get description safely. Prefer the job page HTML when available,
+                # because RSS summaries often include board boilerplate.
+                feed_html = get_entry_html(entry)
+                page_html = extract_full_description_html(job_page_soup, feed_source["source"])
+                desc_html = page_html or feed_html
+                desc_text = clean_html(desc_html)
+                if feed_source["source"] == "WeWorkRemotely":
+                    desc_text = strip_weworkremotely_boilerplate(desc_text)
 
                 # Prepare Data
                 job_data = {
@@ -112,9 +278,10 @@ def process_feeds():
                     "title": str(title),
                     "company": str(company),
                     "location": "Remote",
-                    "description": clean_html(desc),
+                    "description": desc_text,
+                    "description_html": desc_html or None,
                     "salary_text": "Not Listed",   
-                    "apply_url": str(link),
+                    "apply_url": str(direct_apply_url or link),
                     "logo": get_logo_url(company, feed_source['domain']),
                     "category": get_category(title),
                     "source_url": str(link),

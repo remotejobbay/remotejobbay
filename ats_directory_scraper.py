@@ -132,9 +132,9 @@ def clean_html(html_content):
         return str(html_content)
     try:
         soup = BeautifulSoup(html_content, "html.parser")
-        return soup.get_text(separator=" ")[:5000].strip()
+        return soup.get_text(separator=" ").strip()
     except Exception:
-        return str(html_content)[:5000]
+        return str(html_content)
 
 
 def get_logo_url(company_name, source_domain):
@@ -233,6 +233,7 @@ def fetch_greenhouse_jobs(company):
             "company": company,
             "location": location,
             "description": clean_html(description),
+            "description_html": description or None,
             "apply_url": apply_url,
             "source_url": apply_url,
             "source": "Greenhouse",
@@ -258,6 +259,7 @@ def fetch_lever_jobs(company):
         categories = job.get("categories", {})
         location = categories.get("location", "")
         description = job.get("descriptionPlain") or job.get("description") or ""
+        description_html = job.get("description") or ""
         apply_url = job.get("hostedUrl")
         job_id = job.get("id")
 
@@ -267,6 +269,7 @@ def fetch_lever_jobs(company):
             "company": company,
             "location": location,
             "description": clean_html(description),
+            "description_html": description_html or None,
             "apply_url": apply_url,
             "source_url": apply_url,
             "source": "Lever",
@@ -318,6 +321,7 @@ def fetch_workable_jobs(company):
             "company": company,
             "location": location,
             "description": clean_html(description),
+            "description_html": description or None,
             "apply_url": apply_url,
             "source_url": apply_url,
             "source": "Workable",
@@ -372,6 +376,7 @@ def process_ats(ats_key):
                 "company": str(job.get("company") or "Unknown"),
                 "location": "Remote",
                 "description": job.get("description") or "No description",
+                "description_html": job.get("description_html"),
                 "salary_text": "Not Listed",
                 "apply_url": str(job.get("apply_url")),
                 "logo": job.get("logo"),
