@@ -160,6 +160,9 @@ async function scrapeRemoteOk() {
 
       // Get description from expanded view
       const descriptionEl = $(element).find('.description');
+      const descriptionHtml = descriptionEl.length
+        ? descriptionEl.html().trim()
+        : '';
       const description = descriptionEl.length 
         ? descriptionEl.text().trim() 
         : `${title} at ${company}. Apply via ${fullApplyUrl}`;
@@ -194,7 +197,8 @@ async function scrapeRemoteOk() {
             salary: salary,
             salaryType: salaryType, // Must match your enum values
             logo: getCompanyLogoUrl(company),
-            description: description.substring(0, 5000), // Limit length
+            description,
+            description_html: descriptionHtml || null,
             // user_id: null (not needed for scraped jobs)
             datePosted: new Date().toISOString(), // Must be timestamp with timezone
             applyUrl: fullApplyUrl,
